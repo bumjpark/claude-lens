@@ -2,6 +2,7 @@
 backend/target/
 *.class
 *.jar
+*.war
 
 # Node
 node_modules/
@@ -9,9 +10,18 @@ cli/node_modules/
 frontend/node_modules/
 frontend/dist/
 .env
-.env.local
+.env.*
+!.env.example
+
+# Python
+ai/__pycache__/
+ai/.venv/
+ai/*.pyc
+
+# Docker
+docker/*.log
 
 # IDE
 .idea/
 .vscode/
-*.DS_Store
+.DS_Store
