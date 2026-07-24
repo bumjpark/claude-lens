@@ -4,6 +4,9 @@ pipeline {
     environment {
         SONAR_HOST_URL = 'http://sonarqube:9000'
         SONAR_TOKEN = credentials('sonar-token')
+        DB_URL = 'jdbc:postgresql://postgres:5432/claudelens'
+        MONGO_URI = 'mongodb://mongodb:27017/claudelens'
+        REDIS_HOST = 'redis'
     }
 
     stages {
