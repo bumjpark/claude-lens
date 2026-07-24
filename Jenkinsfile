@@ -2,8 +2,10 @@ pipeline {
     agent any
 
     environment {
-        SONAR_HOST_URL = 'http://sonarqube:9000'
-        SONAR_TOKEN = credentials('sonar-token')
+        SONAR_HOST_URL = 'https://sonarcloud.io'
+        SONAR_ORGANIZATION = 'bumjpark'
+        SONAR_PROJECT_KEY = 'bumjpark_claude-lens'
+        SONAR_TOKEN = credentials('sonarcloud-token')
         DB_URL = 'jdbc:postgresql://postgres:5432/claudelens'
         MONGO_URI = 'mongodb://mongodb:27017/claudelens'
         REDIS_HOST = 'redis'
@@ -41,13 +43,13 @@ pipeline {
         stage('SonarQube 분석') {
             steps {
                 dir('backend') {
-                    sh """
+                    sh '''
                         ./gradlew sonar \
-                        -Dsonar.projectKey=claude-lens-backend \
-                        -Dsonar.projectName='Claude Lens Backend' \
-                        -Dsonar.host.url=${SONAR_HOST_URL} \
-                        -Dsonar.token=${SONAR_TOKEN}
-                    """
+                        -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+                        -Dsonar.organization=$SONAR_ORGANIZATION \
+                        -Dsonar.host.url=$SONAR_HOST_URL \
+                        -Dsonar.token=$SONAR_TOKEN
+                    '''
                 }
             }
         }
