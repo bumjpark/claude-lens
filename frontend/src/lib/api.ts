@@ -84,3 +84,39 @@ export function createProject(input: { name: string; language?: string; framewor
     body: JSON.stringify(input),
   });
 }
+
+export interface Recommendation {
+  id: string;
+  category: string;
+  priority: string;
+  problem: string;
+  evidence: string;
+  suggestion: string;
+  examplePrompt: string;
+}
+
+export interface Evaluation {
+  id: string;
+  maturityLevel: string;
+  promptQualityScore: number;
+  efficiencyScore: number;
+  contextUsageScore: number;
+  validationScore: number;
+  collaborationScore: number;
+  totalScore: number;
+  grade: string;
+  strengths: string[];
+  weaknesses: string[];
+  evaluatedAt: string;
+  recommendations: Recommendation[];
+}
+
+export function getEvaluation(projectId: string) {
+  return request<Evaluation>(`/api/v1/projects/${projectId}/evaluation`);
+}
+
+export function runAnalysis(projectId: string) {
+  return request<Evaluation>(`/api/v1/projects/${projectId}/analyze`, {
+    method: 'POST',
+  });
+}

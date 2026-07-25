@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getProject, ApiError, type Project } from '../lib/api';
+import EvaluationPanel from '../components/EvaluationPanel';
 
 export default function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -68,6 +69,8 @@ export default function ProjectDetailPage() {
           업로드됩니다. 이 API Key는 이 프로젝트 전용이니 외부에 공유하지 마세요.
         </p>
       </div>
+
+      <EvaluationPanel projectId={project.id} />
     </div>
   );
 }
