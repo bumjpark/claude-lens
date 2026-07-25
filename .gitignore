@@ -15,9 +15,9 @@ frontend/dist/
 !.env.example
 
 # Python
-ai/__pycache__/
+ai/**/__pycache__/
 ai/.venv/
-ai/*.pyc
+ai/**/*.pyc
 
 # Docker
 docker/*.log
