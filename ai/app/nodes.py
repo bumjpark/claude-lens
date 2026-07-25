@@ -38,21 +38,34 @@ def compute_behavior_stats(interactions) -> str:
     )
 
 
+# 한 번에 너무 많은 상호작용을 넣으면 LLM이 일부를 누락하고 응답하는 경우가 있어서
+# (예: 42건 중 12건만 응답) 작은 묶음으로 쪼개서 호출한 뒤 합친다.
+PROMPT_QUALITY_CHUNK_SIZE = 5
+
+
 def prompt_quality_node(state: PipelineState) -> dict:
     llm = _llm(PromptQualityBatch)
-    result: PromptQualityBatch = llm.invoke(
-        [
-            SystemMessage(content=PROMPT_QUALITY_SYSTEM),
-            HumanMessage(
-                content=(
-                    "다음은 한 개발자의 AI 상호작용 로그입니다. 각각을 평가해주세요. "
-                    "log_id는 상호작용의 id를 그대로 쓰세요.\n\n"
-                    + format_interactions(state.interactions)
-                )
-            ),
-        ]
-    )
-    return {"prompt_analyses": result.results}
+    interactions = state.interactions
+    all_results = []
+
+    for start in range(0, len(interactions), PROMPT_QUALITY_CHUNK_SIZE):
+        chunk = interactions[start : start + PROMPT_QUALITY_CHUNK_SIZE]
+        result: PromptQualityBatch = llm.invoke(
+            [
+                SystemMessage(content=PROMPT_QUALITY_SYSTEM),
+                HumanMessage(
+                    content=(
+                        f"다음은 한 개발자의 AI 상호작용 로그 {len(chunk)}건입니다. "
+                        f"반드시 {len(chunk)}건 전부에 대해 하나씩 빠짐없이 평가해주세요. "
+                        "log_id는 상호작용의 id를 그대로 쓰세요.\n\n"
+                        + format_interactions(chunk)
+                    )
+                ),
+            ]
+        )
+        all_results.extend(result.results)
+
+    return {"prompt_analyses": all_results}
 
 
 def maturity_node(state: PipelineState) -> dict:
