@@ -1,0 +1,16 @@
+{
+  "name": "claude-lens",
+  "version": "0.1.0",
+  "description": "claude-lens CLI - Claude Code 세션 로그를 수집해서 claude-lens 서버로 업로드합니다",
+  "type": "module",
+  "bin": {
+    "claude-lens": "./bin/claude-lens.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "prompts": "^2.4.2"
+  }
+}
