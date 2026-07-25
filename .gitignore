@@ -3,6 +3,7 @@ backend/target/
 *.class
 *.jar
 *.war
+!backend/gradle/wrapper/gradle-wrapper.jar
 
 # Node
 node_modules/
