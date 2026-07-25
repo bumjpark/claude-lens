@@ -27,6 +27,15 @@ services:
     ports:
       - "6379:6379"
 
+  ai:
+    build: ../ai
+    container_name: claudelens-ai
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o}
+    ports:
+      - "8000:8000"
+
 volumes:
   postgres_data:
   mongo_data:
