@@ -21,7 +21,7 @@ def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
 
     return AnalyzeResponse(
         prompt_analyses=final_state["prompt_analyses"],
-        maturity=final_state["maturity"],
+        evaluation=final_state["evaluation"],
         task_flow=final_state["task_flow"],
         recommendations=final_state["recommendations"],
     )
