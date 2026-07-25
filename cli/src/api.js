@@ -7,27 +7,12 @@ async function parseErrorBody(res) {
   }
 }
 
-export async function login(baseUrl, email, password) {
-  const res = await fetch(`${baseUrl}/api/v1/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+// apiKey가 이 projectId에 대해 유효한지 미리 확인한다 (오타를 init 시점에 바로 잡기 위함).
+export async function verifyApiKey(baseUrl, apiKey, projectId) {
+  const res = await fetch(`${baseUrl}/api/v1/ingest/status/${projectId}`, {
+    headers: { 'X-API-Key': apiKey },
   });
-  if (!res.ok) throw new Error(`로그인 실패 (${res.status}): ${await parseErrorBody(res)}`);
-  return res.json();
-}
-
-export async function createProject(baseUrl, token, project) {
-  const res = await fetch(`${baseUrl}/api/v1/projects`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(project),
-  });
-  if (!res.ok) throw new Error(`프로젝트 생성 실패 (${res.status}): ${await parseErrorBody(res)}`);
-  return res.json();
+  if (!res.ok) throw new Error(`API Key 확인 실패 (${res.status}): ${await parseErrorBody(res)}`);
 }
 
 export async function uploadBatch(baseUrl, apiKey, logs) {

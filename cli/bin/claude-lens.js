@@ -13,11 +13,8 @@ program
   .command('init')
   .description('현재 프로젝트를 claude-lens에 등록합니다')
   .option('--base-url <url>', 'claude-lens 서버 주소')
-  .option('--email <email>', '로그인 이메일')
-  .option('--password <password>', '로그인 비밀번호')
-  .option('--name <name>', '프로젝트 이름')
-  .option('--language <language>', '주 사용 언어')
-  .option('--framework <framework>', '프레임워크')
+  .option('--project-id <id>', '웹 대시보드에서 복사한 프로젝트 ID')
+  .option('--api-key <key>', '웹 대시보드에서 복사한 API Key')
   .option('--force', '이미 설정된 프로젝트도 다시 설정')
   .action(async (opts) => {
     try {
