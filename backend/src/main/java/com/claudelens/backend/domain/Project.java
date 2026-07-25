@@ -26,6 +26,9 @@ public class Project {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "api_key", unique = true, updatable = false)
+    private String apiKey;
+
     private String language;
     private String framework;
 

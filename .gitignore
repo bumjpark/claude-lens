@@ -26,3 +26,5 @@ docker/*.log
 .idea/
 .vscode/
 .DS_Store
+
+.claude-lens/

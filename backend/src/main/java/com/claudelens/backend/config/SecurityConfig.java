@@ -1,5 +1,6 @@
 package com.claudelens.backend.config;
 
+import com.claudelens.backend.security.ApiKeyAuthenticationFilter;
 import com.claudelens.backend.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final ApiKeyAuthenticationFilter apiKeyAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -34,9 +36,13 @@ public class SecurityConfig {
                     "/api/v1/auth/**",
                     "/api/v1/reports/*/public"
                 ).permitAll()
+                // CLI 전용: JWT가 아니라 ApiKeyAuthenticationFilter가 X-API-Key로 인증/거부한다
+                .requestMatchers("/api/v1/ingest/**").permitAll()
                 // 나머지는 인증 필요
                 .anyRequest().authenticated()
             )
+            .addFilterBefore(apiKeyAuthenticationFilter,
+                UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class);
 
