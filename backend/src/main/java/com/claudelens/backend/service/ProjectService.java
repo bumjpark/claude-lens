@@ -12,7 +12,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -23,6 +25,7 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     // 프로젝트 생성 (CLI init 호출)
     @Transactional
@@ -32,6 +35,7 @@ public class ProjectService {
         Project project = Project.builder()
                 .user(user)
                 .name(request.getName())
+                .apiKey(generateApiKey())
                 .language(request.getLanguage())
                 .framework(request.getFramework())
                 .projectSize(request.getProjectSize())
@@ -40,6 +44,12 @@ public class ProjectService {
                 .build();
 
         return ProjectResponse.from(projectRepository.save(project));
+    }
+
+    private String generateApiKey() {
+        byte[] bytes = new byte[24];
+        SECURE_RANDOM.nextBytes(bytes);
+        return "clk_" + HexFormat.of().formatHex(bytes);
     }
 
     // 내 프로젝트 목록

@@ -13,6 +13,7 @@ public class ProjectResponse {
 
     private UUID id;
     private String name;
+    private String apiKey;
     private String language;
     private String framework;
     private String projectSize;
@@ -25,6 +26,7 @@ public class ProjectResponse {
         return ProjectResponse.builder()
                 .id(project.getId())
                 .name(project.getName())
+                .apiKey(project.getApiKey())
                 .language(project.getLanguage())
                 .framework(project.getFramework())
                 .projectSize(project.getProjectSize())
