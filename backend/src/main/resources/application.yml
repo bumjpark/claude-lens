@@ -24,11 +24,6 @@ spring:
     mongodb:
       uri: ${MONGO_URI:mongodb://localhost:27017/claudelens}
 
-    # Redis
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-
 server:
   port: 8080
 

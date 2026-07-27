@@ -6,8 +6,8 @@ services:
     container_name: claudelens-postgres
     environment:
       POSTGRES_DB: claudelens
-      POSTGRES_USER: claudelens
-      POSTGRES_PASSWORD: claudelens
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -16,16 +16,15 @@ services:
   mongodb:
     image: mongo:7
     container_name: claudelens-mongo
+    command: ["mongod", "--auth"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
     ports:
-      - "27017:27017"
+      # 호스트에 이미 27017을 쓰는 별도의 로컬 MongoDB(brew 서비스)가 있어서 27018로 매핑
+      - "27018:27017"
     volumes:
       - mongo_data:/data/db
-
-  redis:
-    image: redis:7-alpine
-    container_name: claudelens-redis
-    ports:
-      - "6379:6379"
 
   ai:
     build: ../ai
