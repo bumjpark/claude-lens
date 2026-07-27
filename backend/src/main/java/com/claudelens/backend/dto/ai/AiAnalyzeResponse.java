@@ -14,7 +14,11 @@ public class AiAnalyzeResponse {
     @JsonProperty("prompt_analyses")
     private List<AiPromptAnalysisResult> promptAnalyses;
 
-    private AiEvaluationResult evaluation;
+    @JsonProperty("deep_analysis")
+    private AiDeepAnalysisResult deepAnalysis;
+
+    @JsonProperty("consult_review")
+    private AiConsultReviewResult consultReview;
 
     private List<AiRecommendationResult> recommendations;
 }

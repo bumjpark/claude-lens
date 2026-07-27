@@ -5,24 +5,22 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
-public class AiEvaluationResult {
+public class AiConsultReviewResult {
     @JsonProperty("maturity_level")
     private String maturityLevel;
 
     private String grade;
 
-    @JsonProperty("interaction_log_analysis")
-    private String interactionLogAnalysis;
-
-    @JsonProperty("task_flow_analysis")
-    private String taskFlowAnalysis;
-
     @JsonProperty("agent_usage_analysis")
     private String agentUsageAnalysis;
 
-    @JsonProperty("context_interpretation")
-    private String contextInterpretation;
+    private List<AiConsultCategory> categories;
+
+    @JsonProperty("consult_summary")
+    private String consultSummary;
 }

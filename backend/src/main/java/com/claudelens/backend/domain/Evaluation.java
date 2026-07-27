@@ -2,9 +2,12 @@ package com.claudelens.backend.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -46,14 +49,32 @@ public class Evaluation {
     @Column(name = "activity_summary")
     private String activitySummary;
 
-    @Column(name = "interaction_log_analysis")
-    private String interactionLogAnalysis;
-
     @Column(name = "agent_usage_analysis")
     private String agentUsageAnalysis;
 
-    @Column(name = "context_interpretation")
-    private String contextInterpretation;
+    @JdbcTypeCode(SqlTypes.JSON)
+    private List<String> keyConclusions;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    private List<CaseStudyItem> caseStudies;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    private List<String> strengths;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    private List<String> weaknesses;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    private List<InteractionPatternItem> interactionPatterns;
+
+    @Column(name = "pattern_analysis")
+    private String patternAnalysis;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    private List<ConsultCategoryItem> consultCategories;
+
+    @Column(name = "consult_summary")
+    private String consultSummary;
 
     @PrePersist
     protected void onCreate() {

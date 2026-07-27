@@ -4,6 +4,8 @@ import com.claudelens.backend.client.AiAnalysisClient;
 import com.claudelens.backend.domain.*;
 import com.claudelens.backend.dto.ai.AiAnalysisProgress;
 import com.claudelens.backend.dto.ai.AiAnalyzeResponse;
+import com.claudelens.backend.dto.ai.AiConsultReviewResult;
+import com.claudelens.backend.dto.ai.AiDeepAnalysisResult;
 import com.claudelens.backend.dto.ai.AiPromptAnalysisResult;
 import com.claudelens.backend.dto.ai.AiRecommendationResult;
 import com.claudelens.backend.dto.analysis.EvaluationResponse;
@@ -98,16 +100,43 @@ public class AnalysisService {
     }
 
     private Evaluation saveEvaluation(Project project, AiAnalyzeResponse aiResponse, List<InteractionLog> logs) {
-        var result = aiResponse.getEvaluation();
+        AiDeepAnalysisResult deepAnalysis = aiResponse.getDeepAnalysis();
+        AiConsultReviewResult consultReview = aiResponse.getConsultReview();
         Evaluation evaluation = evaluationRepository.findByProjectId(project.getId())
                 .orElseGet(Evaluation::new);
 
         evaluation.setProject(project);
-        evaluation.setMaturityLevel(result.getMaturityLevel());
-        evaluation.setGrade(result.getGrade());
-        evaluation.setInteractionLogAnalysis(result.getInteractionLogAnalysis());
-        evaluation.setAgentUsageAnalysis(result.getAgentUsageAnalysis());
-        evaluation.setContextInterpretation(result.getContextInterpretation());
+        evaluation.setMaturityLevel(consultReview.getMaturityLevel());
+        evaluation.setGrade(consultReview.getGrade());
+        evaluation.setAgentUsageAnalysis(consultReview.getAgentUsageAnalysis());
+        evaluation.setConsultCategories(consultReview.getCategories().stream()
+                .map(c -> ConsultCategoryItem.builder()
+                        .category(c.getCategory())
+                        .score(c.getScore())
+                        .positiveNote(c.getPositiveNote())
+                        .improvementNote(c.getImprovementNote())
+                        .build())
+                .toList());
+        evaluation.setConsultSummary(consultReview.getConsultSummary());
+
+        evaluation.setKeyConclusions(deepAnalysis.getKeyConclusions());
+        evaluation.setCaseStudies(deepAnalysis.getCaseStudies().stream()
+                .map(c -> CaseStudyItem.builder()
+                        .title(c.getTitle())
+                        .structuralIssue(c.getStructuralIssue())
+                        .interpretation(c.getInterpretation())
+                        .evidence(c.getEvidence())
+                        .build())
+                .toList());
+        evaluation.setStrengths(deepAnalysis.getStrengths());
+        evaluation.setWeaknesses(deepAnalysis.getWeaknesses());
+        evaluation.setInteractionPatterns(deepAnalysis.getInteractionPatterns().stream()
+                .map(p -> InteractionPatternItem.builder()
+                        .patternName(p.getPatternName())
+                        .description(p.getDescription())
+                        .build())
+                .toList());
+        evaluation.setPatternAnalysis(deepAnalysis.getPatternAnalysis());
         evaluation.setEvaluatedAt(LocalDateTime.now());
 
         int commitCount = taskRepository.findByProjectId(project.getId()).stream()
@@ -123,7 +152,7 @@ public class AnalysisService {
         evaluation.setInteractionCount(logs.size());
         evaluation.setAvgResponseTimeMs(average(responseTimes));
         evaluation.setMedianResponseTimeMs(median(responseTimes));
-        evaluation.setActivitySummary(result.getTaskFlowAnalysis());
+        evaluation.setActivitySummary(deepAnalysis.getTaskFlowAnalysis());
 
         return evaluationRepository.save(evaluation);
     }

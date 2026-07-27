@@ -5,13 +5,15 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.progress import set_stage
 from app.prompts import (
-    ANALYSIS_SYSTEM,
+    CONSULT_REVIEW_SYSTEM,
+    DEEP_ANALYSIS_SYSTEM,
     PROMPT_QUALITY_SYSTEM,
     RECOMMENDATION_SYSTEM,
     format_interactions,
 )
 from app.schemas import (
-    AnalysisResult,
+    ConsultReviewResult,
+    DeepAnalysisResult,
     PipelineState,
     PromptQualityBatch,
     RecommendationBatch,
@@ -76,13 +78,13 @@ def format_quality_summary(prompt_analyses) -> str:
     )
 
 
-def analysis_node(state: PipelineState) -> dict:
+def deep_analysis_node(state: PipelineState) -> dict:
     set_stage(state.project_id, 2)
-    llm = _llm(AnalysisResult)
+    llm = _llm(DeepAnalysisResult)
     quality_summary = format_quality_summary(state.prompt_analyses)
-    result: AnalysisResult = llm.invoke(
+    result: DeepAnalysisResult = llm.invoke(
         [
-            SystemMessage(content=ANALYSIS_SYSTEM),
+            SystemMessage(content=DEEP_ANALYSIS_SYSTEM),
             HumanMessage(
                 content=(
                     f"[사용자 정보] 역할: {state.user_role}, 연차: {state.user_experience_level}\n\n"
@@ -92,24 +94,49 @@ def analysis_node(state: PipelineState) -> dict:
             ),
         ]
     )
-    return {"evaluation": result}
+    return {"deep_analysis": result}
+
+
+def consult_review_node(state: PipelineState) -> dict:
+    set_stage(state.project_id, 3)
+    llm = _llm(ConsultReviewResult)
+    quality_summary = format_quality_summary(state.prompt_analyses)
+    da = state.deep_analysis
+    result: ConsultReviewResult = llm.invoke(
+        [
+            SystemMessage(content=CONSULT_REVIEW_SYSTEM),
+            HumanMessage(
+                content=(
+                    f"[사용자 정보] 역할: {state.user_role}, 연차: {state.user_experience_level}\n\n"
+                    f"[행동 패턴 통계]\n{compute_behavior_stats(state.interactions)}\n\n"
+                    f"[심층 분석 결과]\n"
+                    f"핵심 결론: {da.key_conclusions}\n강점: {da.strengths}\n약점: {da.weaknesses}\n"
+                    f"패턴 분석: {da.pattern_analysis}\n작업 흐름: {da.task_flow_analysis}\n\n"
+                    f"[1단계 프롬프트 품질 분석 결과 (시간 순)]\n{quality_summary}"
+                )
+            ),
+        ]
+    )
+    return {"consult_review": result}
 
 
 def recommendation_node(state: PipelineState) -> dict:
-    set_stage(state.project_id, 3)
+    set_stage(state.project_id, 4)
     llm = _llm(RecommendationBatch)
     quality_summary = "\n".join(f"- {qa.log_id}: {qa.evidence}" for qa in state.prompt_analyses)
+    da = state.deep_analysis
+    cr = state.consult_review
     result: RecommendationBatch = llm.invoke(
         [
             SystemMessage(content=RECOMMENDATION_SYSTEM),
             HumanMessage(
                 content=(
-                    f"[종합 분석]\n"
-                    f"등급: {state.evaluation.grade}, 성숙도: {state.evaluation.maturity_level}\n"
-                    f"로그 분석: {state.evaluation.interaction_log_analysis}\n"
-                    f"작업 흐름: {state.evaluation.task_flow_analysis}\n"
-                    f"Agent 활용 방식: {state.evaluation.agent_usage_analysis}\n"
-                    f"연차·직무 맥락 해석: {state.evaluation.context_interpretation}\n\n"
+                    f"[심층 분석]\n"
+                    f"핵심 결론: {da.key_conclusions}\n강점: {da.strengths}\n약점: {da.weaknesses}\n"
+                    f"패턴 분석: {da.pattern_analysis}\n\n"
+                    f"[AI Agent 활용 평가]\n"
+                    f"등급: {cr.grade}, 성숙도: {cr.maturity_level}\n"
+                    f"Agent 활용 방식: {cr.agent_usage_analysis}\n\n"
                     f"[프롬프트별 근거]\n{quality_summary}"
                 )
             ),
