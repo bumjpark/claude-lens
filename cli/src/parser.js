@@ -55,14 +55,37 @@ function extractAssistantText(entry) {
   return text || null;
 }
 
+// tool_use가 실제로 건드린 파일 경로/명령어를 뽑아낸다. 이 turn이 프로젝트와
+// 관련 있는 작업이었는지 판단하는 근거로 쓴다 (아래 isProjectRelevant 참고).
+function extractToolUsePaths(entry) {
+  const content = entry.message?.content;
+  if (!Array.isArray(content)) return [];
+  return content
+    .filter((block) => block.type === 'tool_use')
+    .map((block) => {
+      const input = block.input ?? {};
+      return input.file_path ?? input.path ?? input.notebook_path ?? input.command ?? null;
+    })
+    .filter(Boolean);
+}
+
+// 이 프로젝트 폴더 밖의 파일/명령만 건드렸거나 tool_use 자체가 없는 turn(순수 잡담,
+// 관련 없는 질문 등)은 분석 대상에서 제외한다. 실제로 이 프로젝트 코드를 건드린
+// 흔적이 하나라도 있으면 관련 있다고 본다.
+function isProjectRelevant(toolPaths, cwd) {
+  return toolPaths.some((p) => p.includes(cwd));
+}
+
 // Jackson의 LocalDateTime은 'Z'(UTC 오프셋)가 붙은 문자열을 못 읽으므로 제거한다.
 function toLocalDateTimeString(isoTimestamp) {
   return isoTimestamp.replace('Z', '');
 }
 
 // 세션 파일 하나를 (실제 사용자 프롬프트, 다음 프롬프트 전까지 나온 assistant 텍스트 전부)
-// 쌍의 목록으로 변환한다.
-export function parseSessionFile(filePath) {
+// 쌍의 목록으로 변환한다. 각 항목에는 relevant 플래그가 붙는데, 이 turn에서 실제로
+// 이 프로젝트 폴더(cwd) 안의 파일/명령을 건드린 tool_use가 있었는지를 나타낸다.
+// 프로젝트와 무관한 잡담(다른 폴더 작업, 순수 Q&A 등)을 걸러내는 데 쓴다.
+export function parseSessionFile(filePath, cwd = process.cwd()) {
   const lines = readFileSync(filePath, 'utf-8').split('\n').filter(Boolean);
   const interactions = [];
   let current = null;
@@ -75,6 +98,7 @@ export function parseSessionFile(filePath) {
         responseText: current.responseParts.join('\n\n'),
         requestedAt: toLocalDateTimeString(current.requestedAt),
         responseTimeMs: Number.isFinite(responseTimeMs) && responseTimeMs >= 0 ? responseTimeMs : null,
+        relevant: isProjectRelevant(current.toolPaths, cwd),
       });
     }
   };
@@ -96,6 +120,7 @@ export function parseSessionFile(filePath) {
           requestedAt: entry.timestamp,
           lastTimestamp: entry.timestamp,
           responseParts: [],
+          toolPaths: [],
         };
       }
     } else if (entry.type === 'assistant' && current) {
@@ -104,6 +129,7 @@ export function parseSessionFile(filePath) {
         current.responseParts.push(text);
         current.lastTimestamp = entry.timestamp;
       }
+      current.toolPaths.push(...extractToolUsePaths(entry));
     }
   }
   flush();

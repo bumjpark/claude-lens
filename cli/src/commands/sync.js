@@ -26,17 +26,35 @@ export async function syncCommand() {
     return;
   }
 
-  config.syncedCounts ??= {};
+  config.syncedAt ??= {};
   let totalUploaded = 0;
 
   for (const file of files) {
-    const interactions = parseSessionFile(file.path);
-    const alreadySynced = config.syncedCounts[file.name] ?? 0;
-    const newInteractions = interactions.slice(alreadySynced);
+    const allInteractions = parseSessionFile(file.path);
 
-    if (newInteractions.length === 0) continue;
+    // 예전 방식(syncedCounts: 배열 인덱스 기준)에서 새 방식(syncedAt: 시각 기준)으로
+    // 1회 마이그레이션한다. 관련 없는 대화를 걸러내기 시작하면 배열 인덱스가 더 이상
+    // 안정적인 기준이 아니기 때문에, 시각을 기준으로 바꿔야 필터링과 같이 써도 안전하다.
+    const oldCount = config.syncedCounts?.[file.name];
+    if (oldCount !== undefined && config.syncedAt[file.name] === undefined) {
+      const idx = Math.min(oldCount, allInteractions.length) - 1;
+      const cutoff = allInteractions[idx]?.requestedAt;
+      if (cutoff) config.syncedAt[file.name] = cutoff;
+    }
 
-    const logs = newInteractions.map((interaction) => ({
+    const lastSyncedAt = config.syncedAt[file.name];
+    const relevantInteractions = allInteractions.filter((i) => i.relevant);
+    const newInteractions = lastSyncedAt
+      ? relevantInteractions.filter((i) => i.requestedAt > lastSyncedAt)
+      : relevantInteractions;
+
+    const latestTimestamp = allInteractions.at(-1)?.requestedAt;
+    if (newInteractions.length === 0) {
+      if (latestTimestamp) config.syncedAt[file.name] = latestTimestamp;
+      continue;
+    }
+
+    const logs = newInteractions.map(({ relevant, ...interaction }) => ({
       projectId: config.projectId,
       ...interaction,
     }));
@@ -45,11 +63,12 @@ export async function syncCommand() {
       await uploadBatch(config.baseUrl, config.apiKey, batch);
     }
 
-    config.syncedCounts[file.name] = interactions.length;
+    config.syncedAt[file.name] = latestTimestamp;
     totalUploaded += newInteractions.length;
-    console.log(`${file.name}: ${newInteractions.length}건 업로드`);
+    console.log(`${file.name}: ${newInteractions.length}건 업로드 (프로젝트 무관 대화 제외)`);
   }
 
+  delete config.syncedCounts;
   saveConfig(config);
 
   if (totalUploaded === 0) {
