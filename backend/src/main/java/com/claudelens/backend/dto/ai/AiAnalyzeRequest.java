@@ -12,5 +12,11 @@ public class AiAnalyzeRequest {
     @JsonProperty("project_id")
     private String projectId;
 
+    @JsonProperty("user_role")
+    private String userRole;
+
+    @JsonProperty("user_experience_level")
+    private String userExperienceLevel;
+
     private List<AiInteractionDto> interactions;
 }

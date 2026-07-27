@@ -16,8 +16,5 @@ public class AiAnalyzeResponse {
 
     private AiEvaluationResult evaluation;
 
-    @JsonProperty("task_flow")
-    private AiTaskFlowResult taskFlow;
-
     private List<AiRecommendationResult> recommendations;
 }

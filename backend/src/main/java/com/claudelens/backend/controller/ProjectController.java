@@ -52,4 +52,12 @@ public class ProjectController {
         return ResponseEntity.ok(
                 projectService.update(userDetails.getUsername(), projectId, request));
     }
+
+    @PostMapping("/{projectId}/api-key/regenerate")
+    public ResponseEntity<ProjectResponse> regenerateApiKey(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable UUID projectId) {
+        return ResponseEntity.ok(
+                projectService.regenerateApiKey(userDetails.getUsername(), projectId));
+    }
 }

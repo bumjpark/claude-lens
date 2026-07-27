@@ -3,19 +3,18 @@ import os
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 
+from app.progress import set_stage
 from app.prompts import (
-    MATURITY_SYSTEM,
+    ANALYSIS_SYSTEM,
     PROMPT_QUALITY_SYSTEM,
     RECOMMENDATION_SYSTEM,
-    TASK_FLOW_SYSTEM,
     format_interactions,
 )
 from app.schemas import (
-    MaturityResult,
+    AnalysisResult,
     PipelineState,
     PromptQualityBatch,
     RecommendationBatch,
-    TaskFlowResult,
 )
 
 MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o")
@@ -44,6 +43,7 @@ PROMPT_QUALITY_CHUNK_SIZE = 5
 
 
 def prompt_quality_node(state: PipelineState) -> dict:
+    set_stage(state.project_id, 1)
     llm = _llm(PromptQualityBatch)
     interactions = state.interactions
     all_results = []
@@ -68,21 +68,26 @@ def prompt_quality_node(state: PipelineState) -> dict:
     return {"prompt_analyses": all_results}
 
 
-def maturity_node(state: PipelineState) -> dict:
-    llm = _llm(MaturityResult)
-    quality_summary = "\n".join(
+def format_quality_summary(prompt_analyses) -> str:
+    return "\n".join(
         f"- {qa.log_id} ({qa.prompt_type}): context={qa.context_score}, clarity={qa.clarity_score}, "
         f"constraint={qa.constraint_score}, goal={qa.goal_score}, 근거: {qa.evidence}"
-        for qa in state.prompt_analyses
+        for qa in prompt_analyses
     )
-    result: MaturityResult = llm.invoke(
+
+
+def analysis_node(state: PipelineState) -> dict:
+    set_stage(state.project_id, 2)
+    llm = _llm(AnalysisResult)
+    quality_summary = format_quality_summary(state.prompt_analyses)
+    result: AnalysisResult = llm.invoke(
         [
-            SystemMessage(content=MATURITY_SYSTEM),
+            SystemMessage(content=ANALYSIS_SYSTEM),
             HumanMessage(
                 content=(
+                    f"[사용자 정보] 역할: {state.user_role}, 연차: {state.user_experience_level}\n\n"
                     f"[행동 패턴 통계]\n{compute_behavior_stats(state.interactions)}\n\n"
-                    f"[1단계 프롬프트 품질 분석 결과]\n{quality_summary}\n\n"
-                    f"[원본 로그]\n{format_interactions(state.interactions)}"
+                    f"[1단계 프롬프트 품질 분석 결과 (시간 순)]\n{quality_summary}"
                 )
             ),
         ]
@@ -90,24 +95,8 @@ def maturity_node(state: PipelineState) -> dict:
     return {"evaluation": result}
 
 
-def task_flow_node(state: PipelineState) -> dict:
-    llm = _llm(TaskFlowResult)
-    result: TaskFlowResult = llm.invoke(
-        [
-            SystemMessage(content=TASK_FLOW_SYSTEM),
-            HumanMessage(
-                content=(
-                    f"[성숙도 판정]\n레벨: {state.evaluation.maturity_level}\n"
-                    f"강점: {state.evaluation.strengths}\n약점: {state.evaluation.weaknesses}\n\n"
-                    f"[시간 순 상호작용 로그]\n{format_interactions(state.interactions)}"
-                )
-            ),
-        ]
-    )
-    return {"task_flow": result}
-
-
 def recommendation_node(state: PipelineState) -> dict:
+    set_stage(state.project_id, 3)
     llm = _llm(RecommendationBatch)
     quality_summary = "\n".join(f"- {qa.log_id}: {qa.evidence}" for qa in state.prompt_analyses)
     result: RecommendationBatch = llm.invoke(
@@ -115,11 +104,12 @@ def recommendation_node(state: PipelineState) -> dict:
             SystemMessage(content=RECOMMENDATION_SYSTEM),
             HumanMessage(
                 content=(
-                    f"[성숙도 판정] {state.evaluation.maturity_level}\n"
-                    f"강점: {state.evaluation.strengths}\n약점: {state.evaluation.weaknesses}\n\n"
-                    f"[작업 흐름 평가]\n"
-                    f"긍정 요인: {state.task_flow.positive_factors}\n"
-                    f"개선 기회: {state.task_flow.improvement_opportunities}\n\n"
+                    f"[종합 분석]\n"
+                    f"등급: {state.evaluation.grade}, 성숙도: {state.evaluation.maturity_level}\n"
+                    f"로그 분석: {state.evaluation.interaction_log_analysis}\n"
+                    f"작업 흐름: {state.evaluation.task_flow_analysis}\n"
+                    f"Agent 활용 방식: {state.evaluation.agent_usage_analysis}\n"
+                    f"연차·직무 맥락 해석: {state.evaluation.context_interpretation}\n\n"
                     f"[프롬프트별 근거]\n{quality_summary}"
                 )
             ),

@@ -43,7 +43,18 @@ public class ProjectService {
                 .startedAt(LocalDateTime.now())
                 .build();
 
-        return ProjectResponse.from(projectRepository.save(project));
+        return ProjectResponse.revealed(projectRepository.save(project));
+    }
+
+    // API Key 재발급 (기존 키 분실 시에만 사용, 재발급 즉시 기존 키는 무효화된다)
+    @Transactional
+    public ProjectResponse regenerateApiKey(String email, UUID projectId) {
+        User user = findUserByEmail(email);
+        Project project = projectRepository.findByIdAndUserId(projectId, user.getId())
+                .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다"));
+
+        project.setApiKey(generateApiKey());
+        return ProjectResponse.revealed(projectRepository.save(project));
     }
 
     private String generateApiKey() {

@@ -85,6 +85,12 @@ export function createProject(input: { name: string; language?: string; framewor
   });
 }
 
+export function regenerateApiKey(projectId: string) {
+  return request<Project>(`/api/v1/projects/${projectId}/api-key/regenerate`, {
+    method: 'POST',
+  });
+}
+
 export interface Recommendation {
   id: string;
   category: string;
@@ -98,17 +104,17 @@ export interface Recommendation {
 export interface Evaluation {
   id: string;
   maturityLevel: string;
-  promptQualityScore: number;
-  efficiencyScore: number;
-  contextUsageScore: number;
-  validationScore: number;
-  collaborationScore: number;
-  totalScore: number;
   grade: string;
-  strengths: string[];
-  weaknesses: string[];
   evaluatedAt: string;
   recommendations: Recommendation[];
+  commitCount: number | null;
+  interactionCount: number;
+  avgResponseTimeMs: number | null;
+  medianResponseTimeMs: number | null;
+  activitySummary: string;
+  interactionLogAnalysis: string;
+  agentUsageAnalysis: string;
+  contextInterpretation: string;
 }
 
 export function getEvaluation(projectId: string) {
@@ -119,4 +125,14 @@ export function runAnalysis(projectId: string) {
   return request<Evaluation>(`/api/v1/projects/${projectId}/analyze`, {
     method: 'POST',
   });
+}
+
+export interface AnalysisProgress {
+  stage: number;
+  label: string;
+  done: boolean;
+}
+
+export function getAnalysisProgress(projectId: string) {
+  return request<AnalysisProgress>(`/api/v1/projects/${projectId}/analyze/status`);
 }

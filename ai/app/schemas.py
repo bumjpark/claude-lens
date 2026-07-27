@@ -16,6 +16,8 @@ class Interaction(BaseModel):
 
 class AnalyzeRequest(BaseModel):
     project_id: str
+    user_role: str
+    user_experience_level: str
     interactions: list[Interaction]
 
 
@@ -35,28 +37,17 @@ class PromptQualityBatch(BaseModel):
     results: list[PromptQualityResult]
 
 
-# --- 2단계: 성숙도 판정 (evaluations 테이블과 매핑) ---
-class MaturityResult(BaseModel):
-    maturity_level: Literal["Awareness", "Developing", "Proficient", "Expert"]
-    prompt_quality_score: int = Field(ge=0, le=100)
-    efficiency_score: int = Field(ge=0, le=100, description="같은 목표를 더 적은 왕복으로 달성하는 정도")
-    context_usage_score: int = Field(ge=0, le=100)
-    validation_score: int = Field(ge=0, le=100, description="AI 결과를 검증하는 정도")
-    collaboration_score: int = Field(ge=0, le=100)
-    total_score: int = Field(ge=0, le=100)
+# --- 2단계: 종합 분석 (evaluations 테이블과 매핑) ---
+class AnalysisResult(BaseModel):
     grade: Literal["A", "B", "C", "D", "F"]
-    strengths: list[str] = Field(description="실제 로그에 근거한 강점 목록")
-    weaknesses: list[str] = Field(description="실제 로그에 근거한 약점/다음 단계로 가기 위한 조건 목록")
+    maturity_level: Literal["Awareness", "Developing", "Proficient", "Expert"]
+    interaction_log_analysis: str = Field(description="AI 프롬프트 상호작용 로그에서 관찰되는 패턴, 실제 근거 인용 포함")
+    task_flow_analysis: str = Field(description="작업 시도 흐름 및 반복 패턴 분석")
+    agent_usage_analysis: str = Field(description="AI Agent를 활용하는 방식(위임형/미세지시형 등) 분석")
+    context_interpretation: str = Field(description="사용자의 연차·직무 맥락을 반영한 해석")
 
 
-# --- 3단계: 작업 흐름 평가 ---
-class TaskFlowResult(BaseModel):
-    positive_factors: list[str]
-    improvement_opportunities: list[str]
-    summary: str
-
-
-# --- 4단계: 개선 제안 (recommendations 테이블과 매핑) ---
+# --- 3단계: 개선 제안 (recommendations 테이블과 매핑) ---
 class Recommendation(BaseModel):
     category: Literal["prompt_quality", "context", "validation", "collaboration", "efficiency"]
     priority: Literal["high", "medium", "low"]
@@ -72,15 +63,15 @@ class RecommendationBatch(BaseModel):
 
 class AnalyzeResponse(BaseModel):
     prompt_analyses: list[PromptQualityResult]
-    evaluation: MaturityResult
-    task_flow: TaskFlowResult
+    evaluation: AnalysisResult
     recommendations: list[Recommendation]
 
 
 class PipelineState(BaseModel):
     project_id: str
+    user_role: str
+    user_experience_level: str
     interactions: list[Interaction]
     prompt_analyses: Optional[list[PromptQualityResult]] = None
-    evaluation: Optional[MaturityResult] = None
-    task_flow: Optional[TaskFlowResult] = None
+    evaluation: Optional[AnalysisResult] = None
     recommendations: Optional[list[Recommendation]] = None

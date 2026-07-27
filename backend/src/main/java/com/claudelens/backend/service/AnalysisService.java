@@ -2,6 +2,7 @@ package com.claudelens.backend.service;
 
 import com.claudelens.backend.client.AiAnalysisClient;
 import com.claudelens.backend.domain.*;
+import com.claudelens.backend.dto.ai.AiAnalysisProgress;
 import com.claudelens.backend.dto.ai.AiAnalyzeResponse;
 import com.claudelens.backend.dto.ai.AiPromptAnalysisResult;
 import com.claudelens.backend.dto.ai.AiRecommendationResult;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -27,6 +29,7 @@ public class AnalysisService {
     private final PromptAnalysisRepository promptAnalysisRepository;
     private final EvaluationRepository evaluationRepository;
     private final RecommendationRepository recommendationRepository;
+    private final TaskRepository taskRepository;
     private final AiAnalysisClient aiAnalysisClient;
 
     @Transactional
@@ -41,13 +44,23 @@ public class AnalysisService {
             throw new IllegalArgumentException("분석할 대화 로그가 없습니다");
         }
 
-        AiAnalyzeResponse aiResponse = aiAnalysisClient.analyze(projectId, logs);
+        AiAnalyzeResponse aiResponse = aiAnalysisClient.analyze(projectId, logs, user);
 
         savePromptAnalyses(project, aiResponse.getPromptAnalyses());
-        Evaluation evaluation = saveEvaluation(project, aiResponse);
+        Evaluation evaluation = saveEvaluation(project, aiResponse, logs);
         List<Recommendation> recommendations = saveRecommendations(evaluation, aiResponse.getRecommendations());
 
         return EvaluationResponse.from(evaluation, recommendations);
+    }
+
+    @Transactional(readOnly = true)
+    public AiAnalysisProgress getAnalysisProgress(String email, UUID projectId) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다"));
+        projectRepository.findByIdAndUserId(projectId, user.getId())
+                .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다"));
+
+        return aiAnalysisClient.getProgress(projectId);
     }
 
     @Transactional(readOnly = true)
@@ -84,25 +97,49 @@ public class AnalysisService {
         promptAnalysisRepository.saveAll(analyses);
     }
 
-    private Evaluation saveEvaluation(Project project, AiAnalyzeResponse aiResponse) {
+    private Evaluation saveEvaluation(Project project, AiAnalyzeResponse aiResponse, List<InteractionLog> logs) {
         var result = aiResponse.getEvaluation();
         Evaluation evaluation = evaluationRepository.findByProjectId(project.getId())
                 .orElseGet(Evaluation::new);
 
         evaluation.setProject(project);
         evaluation.setMaturityLevel(result.getMaturityLevel());
-        evaluation.setPromptQualityScore(result.getPromptQualityScore());
-        evaluation.setEfficiencyScore(result.getEfficiencyScore());
-        evaluation.setContextUsageScore(result.getContextUsageScore());
-        evaluation.setValidationScore(result.getValidationScore());
-        evaluation.setCollaborationScore(result.getCollaborationScore());
-        evaluation.setTotalScore(result.getTotalScore());
         evaluation.setGrade(result.getGrade());
-        evaluation.setStrengths(result.getStrengths());
-        evaluation.setWeaknesses(result.getWeaknesses());
+        evaluation.setInteractionLogAnalysis(result.getInteractionLogAnalysis());
+        evaluation.setAgentUsageAnalysis(result.getAgentUsageAnalysis());
+        evaluation.setContextInterpretation(result.getContextInterpretation());
         evaluation.setEvaluatedAt(LocalDateTime.now());
 
+        int commitCount = taskRepository.findByProjectId(project.getId()).stream()
+                .mapToInt(Task::getCommitCount)
+                .sum();
+        List<Integer> responseTimes = logs.stream()
+                .map(InteractionLog::getResponseTimeMs)
+                .filter(Objects::nonNull)
+                .sorted()
+                .toList();
+
+        evaluation.setCommitCount(commitCount);
+        evaluation.setInteractionCount(logs.size());
+        evaluation.setAvgResponseTimeMs(average(responseTimes));
+        evaluation.setMedianResponseTimeMs(median(responseTimes));
+        evaluation.setActivitySummary(result.getTaskFlowAnalysis());
+
         return evaluationRepository.save(evaluation);
+    }
+
+    private Integer average(List<Integer> values) {
+        if (values.isEmpty()) return null;
+        return (int) Math.round(values.stream().mapToInt(Integer::intValue).average().orElse(0));
+    }
+
+    private Integer median(List<Integer> sortedValues) {
+        if (sortedValues.isEmpty()) return null;
+        int mid = sortedValues.size() / 2;
+        if (sortedValues.size() % 2 == 0) {
+            return (sortedValues.get(mid - 1) + sortedValues.get(mid)) / 2;
+        }
+        return sortedValues.get(mid);
     }
 
     private List<Recommendation> saveRecommendations(Evaluation evaluation, List<AiRecommendationResult> results) {

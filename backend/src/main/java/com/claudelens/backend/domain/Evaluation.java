@@ -2,12 +2,9 @@ package com.claudelens.backend.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
-import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -29,34 +26,34 @@ public class Evaluation {
     @Column(name = "maturity_level", nullable = false)
     private String maturityLevel;
 
-    @Column(name = "prompt_quality_score")
-    private Integer promptQualityScore;
-
-    @Column(name = "efficiency_score")
-    private Integer efficiencyScore;
-
-    @Column(name = "context_usage_score")
-    private Integer contextUsageScore;
-
-    @Column(name = "validation_score")
-    private Integer validationScore;
-
-    @Column(name = "collaboration_score")
-    private Integer collaborationScore;
-
-    @Column(name = "total_score")
-    private Integer totalScore;
-
     private String grade;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    private List<String> strengths;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    private List<String> weaknesses;
 
     @Column(name = "evaluated_at", nullable = false, updatable = false)
     private LocalDateTime evaluatedAt;
+
+    @Column(name = "commit_count")
+    private Integer commitCount;
+
+    @Column(name = "interaction_count")
+    private Integer interactionCount;
+
+    @Column(name = "avg_response_time_ms")
+    private Integer avgResponseTimeMs;
+
+    @Column(name = "median_response_time_ms")
+    private Integer medianResponseTimeMs;
+
+    @Column(name = "activity_summary")
+    private String activitySummary;
+
+    @Column(name = "interaction_log_analysis")
+    private String interactionLogAnalysis;
+
+    @Column(name = "agent_usage_analysis")
+    private String agentUsageAnalysis;
+
+    @Column(name = "context_interpretation")
+    private String contextInterpretation;
 
     @PrePersist
     protected void onCreate() {

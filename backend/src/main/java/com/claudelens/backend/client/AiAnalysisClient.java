@@ -1,6 +1,8 @@
 package com.claudelens.backend.client;
 
 import com.claudelens.backend.domain.InteractionLog;
+import com.claudelens.backend.domain.User;
+import com.claudelens.backend.dto.ai.AiAnalysisProgress;
 import com.claudelens.backend.dto.ai.AiAnalyzeRequest;
 import com.claudelens.backend.dto.ai.AiAnalyzeResponse;
 import com.claudelens.backend.dto.ai.AiInteractionDto;
@@ -31,9 +33,11 @@ public class AiAnalysisClient {
                 .build();
     }
 
-    public AiAnalyzeResponse analyze(UUID projectId, List<InteractionLog> logs) {
+    public AiAnalyzeResponse analyze(UUID projectId, List<InteractionLog> logs, User user) {
         AiAnalyzeRequest request = new AiAnalyzeRequest(
                 projectId.toString(),
+                user.getRole(),
+                user.getExperienceLevel(),
                 logs.stream().map(this::toDto).toList());
 
         return restClient.post()
@@ -42,6 +46,13 @@ public class AiAnalysisClient {
                 .body(request)
                 .retrieve()
                 .body(AiAnalyzeResponse.class);
+    }
+
+    public AiAnalysisProgress getProgress(UUID projectId) {
+        return restClient.get()
+                .uri("/analyze/{projectId}/status", projectId)
+                .retrieve()
+                .body(AiAnalysisProgress.class);
     }
 
     private AiInteractionDto toDto(InteractionLog log) {

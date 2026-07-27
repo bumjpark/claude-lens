@@ -14,33 +14,33 @@ import java.util.UUID;
 public class EvaluationResponse {
     private UUID id;
     private String maturityLevel;
-    private Integer promptQualityScore;
-    private Integer efficiencyScore;
-    private Integer contextUsageScore;
-    private Integer validationScore;
-    private Integer collaborationScore;
-    private Integer totalScore;
     private String grade;
-    private List<String> strengths;
-    private List<String> weaknesses;
     private LocalDateTime evaluatedAt;
     private List<RecommendationResponse> recommendations;
+    private Integer commitCount;
+    private Integer interactionCount;
+    private Integer avgResponseTimeMs;
+    private Integer medianResponseTimeMs;
+    private String activitySummary;
+    private String interactionLogAnalysis;
+    private String agentUsageAnalysis;
+    private String contextInterpretation;
 
     public static EvaluationResponse from(Evaluation e, List<Recommendation> recommendations) {
         return EvaluationResponse.builder()
                 .id(e.getId())
                 .maturityLevel(e.getMaturityLevel())
-                .promptQualityScore(e.getPromptQualityScore())
-                .efficiencyScore(e.getEfficiencyScore())
-                .contextUsageScore(e.getContextUsageScore())
-                .validationScore(e.getValidationScore())
-                .collaborationScore(e.getCollaborationScore())
-                .totalScore(e.getTotalScore())
                 .grade(e.getGrade())
-                .strengths(e.getStrengths())
-                .weaknesses(e.getWeaknesses())
                 .evaluatedAt(e.getEvaluatedAt())
                 .recommendations(recommendations.stream().map(RecommendationResponse::from).toList())
+                .commitCount(e.getCommitCount())
+                .interactionCount(e.getInteractionCount())
+                .avgResponseTimeMs(e.getAvgResponseTimeMs())
+                .medianResponseTimeMs(e.getMedianResponseTimeMs())
+                .activitySummary(e.getActivitySummary())
+                .interactionLogAnalysis(e.getInteractionLogAnalysis())
+                .agentUsageAnalysis(e.getAgentUsageAnalysis())
+                .contextInterpretation(e.getContextInterpretation())
                 .build();
     }
 }

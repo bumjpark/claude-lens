@@ -26,7 +26,7 @@ public class Project {
     @Column(nullable = false)
     private String name;
 
-    @Column(name = "api_key", unique = true, updatable = false)
+    @Column(name = "api_key", unique = true)
     private String apiKey;
 
     private String language;

@@ -3,6 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { listProjects, createProject, ApiError, type Project } from '../lib/api';
 import { clearSession, getName } from '../lib/auth';
 
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
 export default function DashboardPage() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -31,7 +35,7 @@ export default function DashboardPage() {
         language: language || undefined,
         framework: framework || undefined,
       });
-      navigate(`/projects/${project.id}`);
+      navigate(`/projects/${project.id}`, { state: { freshApiKey: project.apiKey } });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '프로젝트 생성에 실패했습니다');
     } finally {
@@ -44,90 +48,153 @@ export default function DashboardPage() {
     navigate('/login');
   }
 
+  const activeCount = projects.filter((p) => !p.endedAt).length;
+
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">내 프로젝트</h1>
-          <p className="text-sm text-gray-500">{getName()}님, 안녕하세요</p>
-        </div>
-        <button onClick={handleLogout} className="text-sm text-gray-500 underline">
-          로그아웃
-        </button>
-      </div>
-
-      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
-
-      {loading ? (
-        <p className="text-sm text-gray-500">불러오는 중...</p>
-      ) : (
-        <ul className="mb-8 flex flex-col gap-2">
-          {projects.length === 0 && (
-            <li className="text-sm text-gray-500">아직 프로젝트가 없습니다.</li>
-          )}
-          {projects.map((p) => (
-            <li key={p.id}>
-              <Link
-                to={`/projects/${p.id}`}
-                className="block rounded-md border border-gray-200 px-4 py-3 text-sm hover:border-gray-400"
-              >
-                <span className="font-medium text-gray-900">{p.name}</span>
-                {p.language && <span className="ml-2 text-gray-500">{p.language}</span>}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {!showForm ? (
-        <button
-          onClick={() => setShowForm(true)}
-          className="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
-        >
-          + 새 프로젝트
-        </button>
-      ) : (
-        <form onSubmit={handleCreate} className="flex flex-col gap-3 rounded-md border border-gray-200 p-4">
-          <input
-            type="text"
-            required
-            placeholder="프로젝트 이름"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none"
-          />
-          <input
-            type="text"
-            placeholder="언어 (선택, 예: Java)"
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none"
-          />
-          <input
-            type="text"
-            placeholder="프레임워크 (선택, 예: Spring Boot)"
-            value={framework}
-            onChange={(e) => setFramework(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none"
-          />
-          <div className="flex gap-2">
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-gradient-to-br from-indigo-600 to-blue-700 text-white">
+        <div className="mx-auto max-w-7xl px-8 py-14">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-base font-medium text-white/70">claude-lens</p>
+              <h1 className="mt-2 text-4xl font-bold">{getName()}님, 안녕하세요</h1>
+              <p className="mt-2 text-lg text-white/80">
+                AI Agent 협업 데이터를 기반으로 프로젝트별 성숙도를 확인하세요.
+              </p>
+            </div>
             <button
-              type="submit"
-              disabled={creating}
-              className="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+              onClick={handleLogout}
+              className="shrink-0 rounded-md border border-white/30 px-4 py-2 text-sm font-medium text-white hover:bg-white/10"
             >
-              {creating ? '생성 중...' : '생성'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className="rounded-md px-3 py-2 text-sm text-gray-500"
-            >
-              취소
+              로그아웃
             </button>
           </div>
-        </form>
-      )}
+
+          <div className="mt-10 grid grid-cols-2 gap-6 sm:max-w-xl">
+            <div className="rounded-xl bg-white/10 p-6">
+              <p className="text-sm text-white/70">전체 프로젝트</p>
+              <p className="mt-2 text-4xl font-bold">{projects.length}</p>
+            </div>
+            <div className="rounded-xl bg-white/10 p-6">
+              <p className="text-sm text-white/70">진행 중</p>
+              <p className="mt-2 text-4xl font-bold">{activeCount}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-7xl px-8 py-12">
+        {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900">내 프로젝트</h2>
+          {!showForm && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700"
+            >
+              + 새 프로젝트
+            </button>
+          )}
+        </div>
+
+        {showForm && (
+          <form
+            onSubmit={handleCreate}
+            className="mb-6 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+          >
+            <input
+              type="text"
+              required
+              placeholder="프로젝트 이름"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-600 focus:outline-none"
+            />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <input
+                type="text"
+                placeholder="언어 (선택, 예: Java)"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-600 focus:outline-none"
+              />
+              <input
+                type="text"
+                placeholder="프레임워크 (선택, 예: Spring Boot)"
+                value={framework}
+                onChange={(e) => setFramework(e.target.value)}
+                className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-600 focus:outline-none"
+              />
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={creating}
+                className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+              >
+                {creating ? '생성 중...' : '생성'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="rounded-md px-3 py-2 text-sm text-gray-500"
+              >
+                취소
+              </button>
+            </div>
+          </form>
+        )}
+
+        {loading ? (
+          <p className="text-sm text-gray-500">불러오는 중...</p>
+        ) : projects.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-16 text-center">
+            <p className="text-lg font-medium text-gray-900">아직 프로젝트가 없습니다</p>
+            <p className="mt-2 text-base text-gray-500">
+              새 프로젝트를 만들고 CLI를 연결하면 Claude Code 협업 데이터를 분석할 수 있어요.
+            </p>
+          </div>
+        ) : (
+          <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {projects.map((p) => (
+              <li key={p.id}>
+                <Link
+                  to={`/projects/${p.id}`}
+                  className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-7 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md"
+                >
+                  <div className="mb-4 flex items-start justify-between gap-2">
+                    <span className="text-lg font-semibold text-gray-900">{p.name}</span>
+                    <span
+                      className={`shrink-0 rounded px-2.5 py-1 text-xs font-medium ${
+                        p.endedAt ? 'bg-gray-100 text-gray-500' : 'bg-emerald-100 text-emerald-700'
+                      }`}
+                    >
+                      {p.endedAt ? '종료' : '진행 중'}
+                    </span>
+                  </div>
+                  <div className="mb-5 flex flex-wrap gap-2">
+                    {p.language && (
+                      <span className="rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700">
+                        {p.language}
+                      </span>
+                    )}
+                    {p.framework && (
+                      <span className="rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700">
+                        {p.framework}
+                      </span>
+                    )}
+                    {!p.language && !p.framework && (
+                      <span className="text-sm text-gray-400">언어/프레임워크 미지정</span>
+                    )}
+                  </div>
+                  <p className="mt-auto text-sm text-gray-400">{formatDate(p.createdAt)} 생성</p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
