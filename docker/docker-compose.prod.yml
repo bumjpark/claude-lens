@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: claudelens-postgres
+    environment:
+      POSTGRES_DB: claudelens
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7
+    container_name: claudelens-mongo
+    command: ["mongod", "--auth"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
+  ai:
+    build: ../ai
+    container_name: claudelens-ai
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o}
+    restart: unless-stopped
+
+  backend:
+    build: ../backend
+    container_name: claudelens-backend
+    environment:
+      # postgres/mongodb/ai는 도커 네트워크 안에서 서비스 이름으로 서로를 찾는다
+      # (localhost가 아님 — 각자 별도 컨테이너라서).
+      DB_URL: jdbc:postgresql://postgres:5432/claudelens
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      MONGO_URI: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb:27017/claudelens?authSource=admin
+      AI_SERVICE_URL: http://ai:8000
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - mongodb
+      - ai
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  mongo_data:
