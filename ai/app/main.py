@@ -29,7 +29,8 @@ def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
 
     return AnalyzeResponse(
         prompt_analyses=final_state["prompt_analyses"],
-        evaluation=final_state["evaluation"],
+        deep_analysis=final_state["deep_analysis"],
+        consult_review=final_state["consult_review"],
         recommendations=final_state["recommendations"],
     )
 

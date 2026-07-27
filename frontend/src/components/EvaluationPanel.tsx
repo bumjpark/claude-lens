@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Activity, Check, Clock, Loader2, TrendingUp, Zap } from 'lucide-react';
+import { Activity, Award, Check, Clock, Layers, Loader2, TrendingUp, Zap } from 'lucide-react';
 import {
   ApiError,
   getAnalysisProgress,
@@ -12,8 +12,9 @@ import SectionHeader from './SectionHeader';
 
 const ANALYSIS_STEPS = [
   { stage: 1, label: '프롬프트 품질 분석' },
-  { stage: 2, label: '종합 분석' },
-  { stage: 3, label: '개선 제안 생성' },
+  { stage: 2, label: '심층 분석' },
+  { stage: 3, label: 'AI 활용·컨설트 평가' },
+  { stage: 4, label: '개선 제안 생성' },
 ];
 
 function AnalysisStepper({ progress }: { progress: AnalysisProgress | null }) {
@@ -84,9 +85,12 @@ function AnalysisStepper({ progress }: { progress: AnalysisProgress | null }) {
 
 export const EVALUATION_SECTIONS = [
   { id: 'section-1', title: '개발 활동 요약' },
-  { id: 'section-2', title: 'AI 활용 분석' },
-  { id: 'section-3', title: '맥락 기반 해석' },
-  { id: 'section-4', title: '개선 우선순위' },
+  { id: 'section-2', title: '핵심 결론' },
+  { id: 'section-3', title: '주요 작업 분석' },
+  { id: 'section-4', title: '작업의 장점과 단점' },
+  { id: 'section-5', title: 'AI 상호작용 패턴 분석' },
+  { id: 'section-6', title: 'AI Agent 활용 평가' },
+  { id: 'section-7', title: 'AI 컨설트 총평' },
 ];
 
 const PRIORITY_LABEL: Record<string, string> = {
@@ -137,6 +141,22 @@ function StatCard({
       <p className="text-lg text-gray-500">{label}</p>
       <p className="mt-1 text-4xl font-bold text-gray-900">{value}</p>
       <p className="mt-1.5 text-base text-gray-400">{caption}</p>
+    </div>
+  );
+}
+
+function ConsultScoreBar({ label, score }: { label: string; score: number }) {
+  return (
+    <div>
+      <div className="mb-1.5 flex justify-between text-base text-gray-500">
+        <span>{label}</span>
+        <span className="font-medium text-gray-900">{score} / 5</span>
+      </div>
+      <div className="flex gap-1.5">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <div key={n} className={`h-2.5 flex-1 rounded-full ${n <= score ? 'bg-indigo-600' : 'bg-gray-100'}`} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -284,31 +304,18 @@ export default function EvaluationPanel({
       </section>
 
       <section>
-        <SectionHeader id="section-2" index={2} title="AI 활용 분석" subtitle="AI Agent Usage Analysis" />
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
-          <div className="flex flex-col justify-center gap-3 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 p-8 text-white shadow-sm">
-            <span className="w-fit rounded-md bg-white/20 px-4 py-1.5 text-4xl font-bold">
-              {evaluation.grade}
-            </span>
-            <p className="text-2xl font-semibold">{evaluation.maturityLevel}</p>
-            <p className="text-base text-white/80">
-              {new Date(evaluation.evaluatedAt).toLocaleDateString('ko-KR')} 분석
-            </p>
-          </div>
-          <div className="flex flex-col gap-4">
-            <AnalysisBlock title="AI 프롬프트 상호작용 로그 분석" text={evaluation.interactionLogAnalysis} />
-            <AnalysisBlock title="AI Agent 활용 방식" text={evaluation.agentUsageAnalysis} />
-          </div>
+        <SectionHeader id="section-2" index={2} title="핵심 결론" subtitle="Key Conclusions" />
+        <div className="mb-6 flex flex-col gap-3">
+          {evaluation.keyConclusions.map((c, i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-purple-50 p-6"
+            >
+              <p className="text-lg leading-relaxed font-medium text-gray-800">{c}</p>
+            </div>
+          ))}
         </div>
-      </section>
-
-      <section>
-        <SectionHeader id="section-3" index={3} title="맥락 기반 해석" subtitle="Context-based Interpretation" />
-        <AnalysisBlock title="연차·직무 맥락 기반 해석" text={evaluation.contextInterpretation} />
-      </section>
-
-      <section>
-        <SectionHeader id="section-4" index={4} title="개선 우선순위" subtitle="Top Recommendations" />
+        <h3 className="mb-3 text-xl font-semibold text-gray-900">개선 우선순위 Top 3</h3>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {evaluation.recommendations.map((r, i) => (
             <div key={r.id} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -335,6 +342,107 @@ export default function EvaluationPanel({
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section>
+        <SectionHeader id="section-3" index={3} title="주요 작업 분석" subtitle="Case Studies" />
+        <div className="grid grid-cols-1 gap-4">
+          {evaluation.caseStudies.map((c, i) => (
+            <div key={i} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <h3 className="mb-3 text-xl font-semibold text-gray-900">{c.title}</h3>
+              <p className="mb-2 text-base text-gray-500">
+                <span className="font-medium text-gray-700">구조적 문제:</span> {c.structuralIssue}
+              </p>
+              <p className="mb-3 text-lg text-gray-600">{c.interpretation}</p>
+              <p className="border-l-2 border-gray-200 pl-3 text-base italic text-gray-500">「{c.evidence}」</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <SectionHeader id="section-4" index={4} title="작업의 장점과 단점" subtitle="Strengths & Weaknesses" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-6">
+            <h3 className="mb-3 text-xl font-bold text-emerald-800">강점</h3>
+            <ul className="flex flex-col gap-2 text-lg text-emerald-900">
+              {evaluation.strengths.map((s, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-emerald-600">✓</span>
+                  <span>{s}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="rounded-2xl border border-amber-100 bg-amber-50 p-6">
+            <h3 className="mb-3 text-xl font-bold text-amber-800">단점</h3>
+            <ul className="flex flex-col gap-2 text-lg text-amber-900">
+              {evaluation.weaknesses.map((w, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-amber-600">!</span>
+                  <span>{w}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <SectionHeader id="section-5" index={5} title="AI 상호작용 패턴 분석" subtitle="Interaction Patterns" />
+        <div className="mb-4 flex flex-col gap-3">
+          {evaluation.interactionPatterns.map((p, i) => (
+            <div key={i} className="flex gap-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+              <Layers className="mt-0.5 h-5 w-5 shrink-0 text-indigo-600" />
+              <div>
+                <p className="font-semibold text-gray-900">{p.patternName}</p>
+                <p className="text-base text-gray-600">{p.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <AnalysisBlock title="종합 패턴 분석" text={evaluation.patternAnalysis} />
+      </section>
+
+      <section>
+        <SectionHeader id="section-6" index={6} title="AI Agent 활용 평가" subtitle="Agent Usage Evaluation" />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
+          <div className="flex flex-col justify-center gap-3 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 p-8 text-white shadow-sm">
+            <span className="w-fit rounded-md bg-white/20 px-4 py-1.5 text-4xl font-bold">
+              {evaluation.grade}
+            </span>
+            <p className="text-2xl font-semibold">{evaluation.maturityLevel}</p>
+            <p className="text-base text-white/80">
+              {new Date(evaluation.evaluatedAt).toLocaleDateString('ko-KR')} 분석
+            </p>
+          </div>
+          <AnalysisBlock title="AI Agent 활용 방식" text={evaluation.agentUsageAnalysis} />
+        </div>
+      </section>
+
+      <section>
+        <SectionHeader id="section-7" index={7} title="AI 컨설트 총평" subtitle="Consultant Review" />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+          <div className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+            <ConsultScoreBar label="입력 관점" score={evaluation.consultInputPerspectiveScore} />
+            <ConsultScoreBar label="프롬프트 효율성" score={evaluation.consultPromptEfficiencyScore} />
+            <ConsultScoreBar label="기술적 프롬프트 깊이" score={evaluation.consultTechnicalDepthScore} />
+            <ConsultScoreBar label="검증 성숙도" score={evaluation.consultValidationMaturityScore} />
+            <ConsultScoreBar label="토큰 활용 효율" score={evaluation.consultTokenEfficiencyScore} />
+          </div>
+          <div className="flex flex-col justify-center gap-3 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 p-8 text-white shadow-sm">
+            <div className="flex items-center gap-2">
+              <Award className="h-6 w-6" />
+              <span className="text-base text-white/80">종합 점수 {evaluation.consultTotalScore} / 25</span>
+            </div>
+            <span className="w-fit rounded-md bg-white/20 px-4 py-1.5 text-2xl font-bold">
+              {evaluation.consultLevel}
+            </span>
+          </div>
+        </div>
+        <div className="mt-4">
+          <AnalysisBlock title="총평" text={evaluation.consultSummary} />
         </div>
       </section>
     </div>

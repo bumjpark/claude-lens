@@ -101,6 +101,18 @@ export interface Recommendation {
   examplePrompt: string;
 }
 
+export interface CaseStudy {
+  title: string;
+  structuralIssue: string;
+  interpretation: string;
+  evidence: string;
+}
+
+export interface InteractionPattern {
+  patternName: string;
+  description: string;
+}
+
 export interface Evaluation {
   id: string;
   maturityLevel: string;
@@ -112,9 +124,21 @@ export interface Evaluation {
   avgResponseTimeMs: number | null;
   medianResponseTimeMs: number | null;
   activitySummary: string;
-  interactionLogAnalysis: string;
   agentUsageAnalysis: string;
-  contextInterpretation: string;
+  keyConclusions: string[];
+  caseStudies: CaseStudy[];
+  strengths: string[];
+  weaknesses: string[];
+  interactionPatterns: InteractionPattern[];
+  patternAnalysis: string;
+  consultInputPerspectiveScore: number;
+  consultPromptEfficiencyScore: number;
+  consultTechnicalDepthScore: number;
+  consultValidationMaturityScore: number;
+  consultTokenEfficiencyScore: number;
+  consultSummary: string;
+  consultTotalScore: number;
+  consultLevel: string;
 }
 
 export function getEvaluation(projectId: string) {

@@ -1,0 +1,15 @@
+ALTER TABLE evaluations
+    DROP COLUMN interaction_log_analysis,
+    DROP COLUMN context_interpretation,
+    ADD COLUMN key_conclusions JSONB,
+    ADD COLUMN case_studies JSONB,
+    ADD COLUMN strengths JSONB,
+    ADD COLUMN weaknesses JSONB,
+    ADD COLUMN interaction_patterns JSONB,
+    ADD COLUMN pattern_analysis TEXT,
+    ADD COLUMN consult_input_perspective_score INT,
+    ADD COLUMN consult_prompt_efficiency_score INT,
+    ADD COLUMN consult_technical_depth_score INT,
+    ADD COLUMN consult_validation_maturity_score INT,
+    ADD COLUMN consult_token_efficiency_score INT,
+    ADD COLUMN consult_summary TEXT;

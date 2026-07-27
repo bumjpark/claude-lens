@@ -37,17 +37,43 @@ class PromptQualityBatch(BaseModel):
     results: list[PromptQualityResult]
 
 
-# --- 2단계: 종합 분석 (evaluations 테이블과 매핑) ---
-class AnalysisResult(BaseModel):
+class CaseStudy(BaseModel):
+    title: str = Field(description="사례 제목")
+    structural_issue: str = Field(description="이 사례에서 드러난 구조적 문제")
+    interpretation: str = Field(description="그 문제가 의미하는 바에 대한 해석")
+    evidence: str = Field(description="근거가 된 실제 프롬프트/응답 발췌")
+
+
+class InteractionPattern(BaseModel):
+    pattern_name: str = Field(description="패턴 이름 (예: 맥락 없는 재요청)")
+    description: str = Field(description="패턴 설명, 실제 근거 인용 포함")
+
+
+# --- 2단계: 심층 분석 (evaluations 테이블과 매핑) ---
+class DeepAnalysisResult(BaseModel):
+    key_conclusions: list[str] = Field(description="핵심 결론 1~2개")
+    case_studies: list[CaseStudy] = Field(description="실제 사례 2~3건")
+    strengths: list[str] = Field(description="실제 로그에 근거한 작업의 장점")
+    weaknesses: list[str] = Field(description="실제 로그에 근거한 작업의 단점")
+    interaction_patterns: list[InteractionPattern] = Field(description="주요 상호작용 패턴 목록")
+    pattern_analysis: str = Field(description="위 패턴들을 종합한 분석 서술")
+    task_flow_analysis: str = Field(description="작업 시도 흐름 및 반복 패턴 분석")
+
+
+# --- 3단계: AI Agent 활용 평가 + 컨설트 총평 (evaluations 테이블과 매핑) ---
+class ConsultReviewResult(BaseModel):
     grade: Literal["A", "B", "C", "D", "F"]
     maturity_level: Literal["Awareness", "Developing", "Proficient", "Expert"]
-    interaction_log_analysis: str = Field(description="AI 프롬프트 상호작용 로그에서 관찰되는 패턴, 실제 근거 인용 포함")
-    task_flow_analysis: str = Field(description="작업 시도 흐름 및 반복 패턴 분석")
     agent_usage_analysis: str = Field(description="AI Agent를 활용하는 방식(위임형/미세지시형 등) 분석")
-    context_interpretation: str = Field(description="사용자의 연차·직무 맥락을 반영한 해석")
+    input_perspective_score: int = Field(ge=0, le=5, description="프롬프트/컨텍스트 엔지니어링 관점의 입력 품질")
+    prompt_efficiency_score: int = Field(ge=0, le=5, description="같은 목표를 더 적은 왕복으로 달성하는 정도")
+    technical_depth_score: int = Field(ge=0, le=5, description="기술적으로 깊이 있는 프롬프트를 작성하는 정도")
+    validation_maturity_score: int = Field(ge=0, le=5, description="AI 결과를 검증하는 성숙도")
+    token_efficiency_score: int = Field(ge=0, le=5, description="불필요한 반복 없이 토큰을 효율적으로 쓰는 정도")
+    consult_summary: str = Field(description="사용자의 연차·직무 맥락을 반영한 컨설트 총평")
 
 
-# --- 3단계: 개선 제안 (recommendations 테이블과 매핑) ---
+# --- 4단계: 개선 제안 (recommendations 테이블과 매핑) ---
 class Recommendation(BaseModel):
     category: Literal["prompt_quality", "context", "validation", "collaboration", "efficiency"]
     priority: Literal["high", "medium", "low"]
@@ -63,7 +89,8 @@ class RecommendationBatch(BaseModel):
 
 class AnalyzeResponse(BaseModel):
     prompt_analyses: list[PromptQualityResult]
-    evaluation: AnalysisResult
+    deep_analysis: DeepAnalysisResult
+    consult_review: ConsultReviewResult
     recommendations: list[Recommendation]
 
 
@@ -73,5 +100,6 @@ class PipelineState(BaseModel):
     user_experience_level: str
     interactions: list[Interaction]
     prompt_analyses: Optional[list[PromptQualityResult]] = None
-    evaluation: Optional[AnalysisResult] = None
+    deep_analysis: Optional[DeepAnalysisResult] = None
+    consult_review: Optional[ConsultReviewResult] = None
     recommendations: Optional[list[Recommendation]] = None
