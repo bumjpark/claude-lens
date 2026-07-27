@@ -1,11 +1,12 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Activity, Award, Check, Clock, Layers, Loader2, TrendingUp, Zap } from 'lucide-react';
+import { Activity, Award, Check, CheckCircle2, Clock, Layers, Loader2, TrendingUp, Zap } from 'lucide-react';
 import {
   ApiError,
   getAnalysisProgress,
   getEvaluation,
   runAnalysis,
   type AnalysisProgress,
+  type ConsultCategory,
   type Evaluation,
 } from '../lib/api';
 import SectionHeader from './SectionHeader';
@@ -145,17 +146,86 @@ function StatCard({
   );
 }
 
-function ConsultScoreBar({ label, score }: { label: string; score: number }) {
+const CONSULT_CATEGORY_META: Record<
+  string,
+  { index: number; label: string; title: string; subtitle: string; badgeColor: string }
+> = {
+  input_perspective: {
+    index: 1,
+    label: '입력(Input) 관점',
+    title: '7.1 입력(Input) 관점',
+    subtitle: 'Context & Prompt Engineering',
+    badgeColor: 'bg-indigo-600',
+  },
+  prompt_efficiency: {
+    index: 2,
+    label: '프롬프트 효율성',
+    title: '7.2 프롬프트 효율성',
+    subtitle: 'Prompt Count & Process Efficiency',
+    badgeColor: 'bg-purple-600',
+  },
+  technical_depth: {
+    index: 3,
+    label: '기술적 프롬프트 깊이',
+    title: '7.3 기술적 프롬프트 깊이',
+    subtitle: 'Technical Prompt Depth',
+    badgeColor: 'bg-emerald-600',
+  },
+  validation_maturity: {
+    index: 4,
+    label: '검증 성숙도',
+    title: '7.4 검증 체계',
+    subtitle: 'Validation & Quality Assurance',
+    badgeColor: 'bg-blue-600',
+  },
+  token_efficiency: {
+    index: 5,
+    label: '토큰 활용 효율',
+    title: '7.5 토큰 활용 효율',
+    subtitle: 'Token Utilization Efficiency',
+    badgeColor: 'bg-fuchsia-600',
+  },
+};
+
+function ConsultCategoryCard({ item, fullWidth }: { item: ConsultCategory; fullWidth?: boolean }) {
+  const meta = CONSULT_CATEGORY_META[item.category];
+  if (!meta) return null;
   return (
-    <div>
-      <div className="mb-1.5 flex justify-between text-base text-gray-500">
-        <span>{label}</span>
-        <span className="font-medium text-gray-900">{score} / 5</span>
+    <div
+      className={`rounded-2xl border border-gray-200 bg-white p-6 shadow-sm ${fullWidth ? 'sm:col-span-2' : ''}`}
+    >
+      <div className="mb-4 flex items-center gap-3">
+        <span
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg font-bold text-white ${meta.badgeColor}`}
+        >
+          {meta.index}
+        </span>
+        <div>
+          <h3 className="text-lg font-bold text-gray-900">{meta.title}</h3>
+          <p className="text-sm text-gray-400">{meta.subtitle}</p>
+        </div>
       </div>
-      <div className="flex gap-1.5">
-        {[1, 2, 3, 4, 5].map((n) => (
-          <div key={n} className={`h-2.5 flex-1 rounded-full ${n <= score ? 'bg-indigo-600' : 'bg-gray-100'}`} />
-        ))}
+      <div className="mb-4 rounded-xl bg-gray-50 p-4">
+        <div className="mb-1.5 flex items-center justify-between text-base">
+          <span className="text-gray-600">{meta.label}</span>
+          <span className="font-semibold text-gray-900">{item.score} / 5</span>
+        </div>
+        <div className="h-2 w-full rounded-full bg-gray-200">
+          <div
+            className="h-2 rounded-full bg-indigo-600"
+            style={{ width: `${(item.score / 5) * 100}%` }}
+          />
+        </div>
+      </div>
+      <div className="flex flex-col gap-2 text-base">
+        <div className="flex items-start gap-2">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+          <span className="text-gray-700">{item.positiveNote}</span>
+        </div>
+        <div className="flex items-start gap-2">
+          <TrendingUp className="mt-0.5 h-4 w-4 shrink-0 text-orange-500" />
+          <span className="text-gray-700">{item.improvementNote}</span>
+        </div>
       </div>
     </div>
   );
@@ -423,27 +493,25 @@ export default function EvaluationPanel({
 
       <section>
         <SectionHeader id="section-7" index={7} title="AI 컨설트 총평" subtitle="Consultant Review" />
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-          <div className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-            <ConsultScoreBar label="입력 관점" score={evaluation.consultInputPerspectiveScore} />
-            <ConsultScoreBar label="프롬프트 효율성" score={evaluation.consultPromptEfficiencyScore} />
-            <ConsultScoreBar label="기술적 프롬프트 깊이" score={evaluation.consultTechnicalDepthScore} />
-            <ConsultScoreBar label="검증 성숙도" score={evaluation.consultValidationMaturityScore} />
-            <ConsultScoreBar label="토큰 활용 효율" score={evaluation.consultTokenEfficiencyScore} />
-          </div>
-          <div className="flex flex-col justify-center gap-3 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 p-8 text-white shadow-sm">
-            <div className="flex items-center gap-2">
-              <Award className="h-6 w-6" />
-              <span className="text-base text-white/80">종합 점수 {evaluation.consultTotalScore} / 25</span>
-            </div>
-            <span className="w-fit rounded-md bg-white/20 px-4 py-1.5 text-2xl font-bold">
-              {evaluation.consultLevel}
-            </span>
-          </div>
+        <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {evaluation.consultCategories.map((c) => (
+            <ConsultCategoryCard
+              key={c.category}
+              item={c}
+              fullWidth={c.category === 'token_efficiency'}
+            />
+          ))}
         </div>
-        <div className="mt-4">
-          <AnalysisBlock title="총평" text={evaluation.consultSummary} />
+        <div className="mb-4 flex flex-col justify-center gap-3 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 p-8 text-white shadow-sm">
+          <div className="flex items-center gap-2">
+            <Award className="h-6 w-6" />
+            <span className="text-base text-white/80">종합 점수 {evaluation.consultTotalScore} / 25</span>
+          </div>
+          <span className="w-fit rounded-md bg-white/20 px-4 py-1.5 text-2xl font-bold">
+            {evaluation.consultLevel}
+          </span>
         </div>
+        <AnalysisBlock title="총평" text={evaluation.consultSummary} />
       </section>
     </div>
   );

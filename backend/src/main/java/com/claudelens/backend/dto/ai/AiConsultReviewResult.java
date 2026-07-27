@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,20 +19,7 @@ public class AiConsultReviewResult {
     @JsonProperty("agent_usage_analysis")
     private String agentUsageAnalysis;
 
-    @JsonProperty("input_perspective_score")
-    private Integer inputPerspectiveScore;
-
-    @JsonProperty("prompt_efficiency_score")
-    private Integer promptEfficiencyScore;
-
-    @JsonProperty("technical_depth_score")
-    private Integer technicalDepthScore;
-
-    @JsonProperty("validation_maturity_score")
-    private Integer validationMaturityScore;
-
-    @JsonProperty("token_efficiency_score")
-    private Integer tokenEfficiencyScore;
+    private List<AiConsultCategory> categories;
 
     @JsonProperty("consult_summary")
     private String consultSummary;

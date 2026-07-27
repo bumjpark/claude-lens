@@ -113,6 +113,13 @@ export interface InteractionPattern {
   description: string;
 }
 
+export interface ConsultCategory {
+  category: string;
+  score: number;
+  positiveNote: string;
+  improvementNote: string;
+}
+
 export interface Evaluation {
   id: string;
   maturityLevel: string;
@@ -131,11 +138,7 @@ export interface Evaluation {
   weaknesses: string[];
   interactionPatterns: InteractionPattern[];
   patternAnalysis: string;
-  consultInputPerspectiveScore: number;
-  consultPromptEfficiencyScore: number;
-  consultTechnicalDepthScore: number;
-  consultValidationMaturityScore: number;
-  consultTokenEfficiencyScore: number;
+  consultCategories: ConsultCategory[];
   consultSummary: string;
   consultTotalScore: number;
   consultLevel: string;

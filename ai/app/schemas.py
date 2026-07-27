@@ -61,15 +61,27 @@ class DeepAnalysisResult(BaseModel):
 
 
 # --- 3단계: AI Agent 활용 평가 + 컨설트 총평 (evaluations 테이블과 매핑) ---
+class ConsultCategoryResult(BaseModel):
+    category: Literal[
+        "input_perspective",
+        "prompt_efficiency",
+        "technical_depth",
+        "validation_maturity",
+        "token_efficiency",
+    ]
+    score: float = Field(ge=0, le=5, description="0~5점, 0.5 단위로 채점 가능")
+    positive_note: str = Field(description="이 항목에서 잘하고 있는 점 한 문장 (실제 근거 기반)")
+    improvement_note: str = Field(description="이 항목에서 개선 여지가 있는 점 한 문장 (실제 근거 기반)")
+
+
 class ConsultReviewResult(BaseModel):
     grade: Literal["A", "B", "C", "D", "F"]
     maturity_level: Literal["Awareness", "Developing", "Proficient", "Expert"]
     agent_usage_analysis: str = Field(description="AI Agent를 활용하는 방식(위임형/미세지시형 등) 분석")
-    input_perspective_score: int = Field(ge=0, le=5, description="프롬프트/컨텍스트 엔지니어링 관점의 입력 품질")
-    prompt_efficiency_score: int = Field(ge=0, le=5, description="같은 목표를 더 적은 왕복으로 달성하는 정도")
-    technical_depth_score: int = Field(ge=0, le=5, description="기술적으로 깊이 있는 프롬프트를 작성하는 정도")
-    validation_maturity_score: int = Field(ge=0, le=5, description="AI 결과를 검증하는 성숙도")
-    token_efficiency_score: int = Field(ge=0, le=5, description="불필요한 반복 없이 토큰을 효율적으로 쓰는 정도")
+    categories: list[ConsultCategoryResult] = Field(
+        description="input_perspective, prompt_efficiency, technical_depth, "
+        "validation_maturity, token_efficiency 순서로 정확히 5개"
+    )
     consult_summary: str = Field(description="사용자의 연차·직무 맥락을 반영한 컨설트 총평")
 
 

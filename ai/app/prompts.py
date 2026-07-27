@@ -68,12 +68,17 @@ grade는 위 판단의 종합적인 인상을 바탕으로 A/B/C/D/F 중 하나�
 agent_usage_analysis에는 AI Agent를 활용하는 방식을 서술하세요 (예: 큰 작업을 통째로 위임하는지,
 세부적으로 지시하는지, 질문형 위주인지, 코드/오류/리뷰/설계 요청 중 무엇에 치우쳐 있는지 등).
 
-다음 5개 항목을 각각 0~5점으로 채점하세요 (5점 = 매우 우수, 0점 = 매우 미흡):
-- input_perspective_score: 프롬프트 엔지니어링·컨텍스트 엔지니어링 관점에서 입력의 질
-- prompt_efficiency_score: 같은 목표를 더 적은 왕복으로 달성하는 정도
-- technical_depth_score: 기술적으로 깊이 있고 구체적인 프롬프트를 작성하는 정도
-- validation_maturity_score: AI 결과를 검증하는 성숙도
-- token_efficiency_score: 불필요한 반복 없이 효율적으로 토큰(대화 왕복)을 쓰는 정도
+categories에는 아래 5개 항목을 **정확히 이 순서, 정확히 이 category 값**으로 하나씩 채점하세요
+(score는 0~5점, 0.5 단위 사용 가능, 5점 = 매우 우수 / 0점 = 매우 미흡):
+1. input_perspective: 프롬프트 엔지니어링·컨텍스트 엔지니어링 관점에서 입력의 질
+2. prompt_efficiency: 같은 목표를 더 적은 왕복으로 달성하는 정도
+3. technical_depth: 기술적으로 깊이 있고 구체적인 프롬프트를 작성하는 정도
+4. validation_maturity: AI 결과를 검증하는 성숙도
+5. token_efficiency: 불필요한 반복 없이 효율적으로 토큰(대화 왕복)을 쓰는 정도
+
+각 항목마다 positive_note(이 항목에서 잘하고 있는 점 한 문장)와 improvement_note(개선 여지가
+있는 점 한 문장)를 실제 로그 근거를 바탕으로 작성하세요. 막연한 칭찬/지적이 아니라 구체적인
+행동에 근거해야 합니다.
 
 consult_summary에는 [사용자 정보]의 역할·연차를 해석 렌즈로 활용한 총평을 작성하세요
 (예: "주니어 백엔드 개발자 기준으로는..." 처럼 연차·직무 대비 수준을 언급하세요).

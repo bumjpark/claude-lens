@@ -109,11 +109,14 @@ public class AnalysisService {
         evaluation.setMaturityLevel(consultReview.getMaturityLevel());
         evaluation.setGrade(consultReview.getGrade());
         evaluation.setAgentUsageAnalysis(consultReview.getAgentUsageAnalysis());
-        evaluation.setConsultInputPerspectiveScore(consultReview.getInputPerspectiveScore());
-        evaluation.setConsultPromptEfficiencyScore(consultReview.getPromptEfficiencyScore());
-        evaluation.setConsultTechnicalDepthScore(consultReview.getTechnicalDepthScore());
-        evaluation.setConsultValidationMaturityScore(consultReview.getValidationMaturityScore());
-        evaluation.setConsultTokenEfficiencyScore(consultReview.getTokenEfficiencyScore());
+        evaluation.setConsultCategories(consultReview.getCategories().stream()
+                .map(c -> ConsultCategoryItem.builder()
+                        .category(c.getCategory())
+                        .score(c.getScore())
+                        .positiveNote(c.getPositiveNote())
+                        .improvementNote(c.getImprovementNote())
+                        .build())
+                .toList());
         evaluation.setConsultSummary(consultReview.getConsultSummary());
 
         evaluation.setKeyConclusions(deepAnalysis.getKeyConclusions());

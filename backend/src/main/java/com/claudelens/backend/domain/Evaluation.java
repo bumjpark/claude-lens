@@ -70,20 +70,8 @@ public class Evaluation {
     @Column(name = "pattern_analysis")
     private String patternAnalysis;
 
-    @Column(name = "consult_input_perspective_score")
-    private Integer consultInputPerspectiveScore;
-
-    @Column(name = "consult_prompt_efficiency_score")
-    private Integer consultPromptEfficiencyScore;
-
-    @Column(name = "consult_technical_depth_score")
-    private Integer consultTechnicalDepthScore;
-
-    @Column(name = "consult_validation_maturity_score")
-    private Integer consultValidationMaturityScore;
-
-    @Column(name = "consult_token_efficiency_score")
-    private Integer consultTokenEfficiencyScore;
+    @JdbcTypeCode(SqlTypes.JSON)
+    private List<ConsultCategoryItem> consultCategories;
 
     @Column(name = "consult_summary")
     private String consultSummary;
