@@ -1,3 +1,5 @@
+name: claudelens-prod
+
 services:
   postgres:
     image: postgres:16
@@ -52,4 +54,6 @@ services:
 
 volumes:
   postgres_data:
+    name: claudelens-prod-postgres-data
   mongo_data:
+    name: claudelens-prod-mongo-data
