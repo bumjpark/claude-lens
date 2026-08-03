@@ -101,9 +101,9 @@ const PRIORITY_LABEL: Record<string, string> = {
 };
 
 const PRIORITY_STYLE: Record<string, string> = {
-  high: 'bg-red-100 text-red-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  low: 'bg-gray-100 text-gray-600',
+  high: 'bg-gray-900 text-white',
+  medium: 'bg-gray-200 text-gray-700',
+  low: 'bg-gray-100 text-gray-500',
 };
 
 function AnalysisBlock({ title, text }: { title: string; text: string }) {
@@ -153,35 +153,35 @@ const CONSULT_CATEGORY_META: Record<
     label: '입력(Input) 관점',
     title: '7.1 입력(Input) 관점',
     subtitle: 'Context & Prompt Engineering',
-    badgeColor: 'bg-indigo-600',
+    badgeColor: 'bg-black',
   },
   prompt_efficiency: {
     index: 2,
     label: '프롬프트 효율성',
     title: '7.2 프롬프트 효율성',
     subtitle: 'Prompt Count & Process Efficiency',
-    badgeColor: 'bg-purple-600',
+    badgeColor: 'bg-black',
   },
   technical_depth: {
     index: 3,
     label: '기술적 프롬프트 깊이',
     title: '7.3 기술적 프롬프트 깊이',
     subtitle: 'Technical Prompt Depth',
-    badgeColor: 'bg-emerald-600',
+    badgeColor: 'bg-black',
   },
   validation_maturity: {
     index: 4,
     label: '검증 성숙도',
     title: '7.4 검증 체계',
     subtitle: 'Validation & Quality Assurance',
-    badgeColor: 'bg-blue-600',
+    badgeColor: 'bg-black',
   },
   token_efficiency: {
     index: 5,
     label: '토큰 활용 효율',
     title: '7.5 토큰 활용 효율',
     subtitle: 'Token Utilization Efficiency',
-    badgeColor: 'bg-fuchsia-600',
+    badgeColor: 'bg-black',
   },
 };
 
@@ -430,23 +430,23 @@ export default function EvaluationPanel({
       <section>
         <SectionHeader id="section-4" index={4} title="작업의 장점과 단점" subtitle="Strengths & Weaknesses" />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="rounded-3xl border border-emerald-100 bg-emerald-50 p-6">
-            <h3 className="mb-3 text-xl font-bold text-emerald-800">강점</h3>
-            <ul className="flex flex-col gap-2 text-lg text-emerald-900">
+          <div className="rounded-3xl border border-gray-200 bg-gray-50 p-6">
+            <h3 className="mb-3 text-xl font-bold text-gray-900">강점</h3>
+            <ul className="flex flex-col gap-2 text-lg text-gray-700">
               {evaluation.strengths.map((s, i) => (
                 <li key={i} className="flex gap-2">
-                  <span className="text-emerald-600">✓</span>
+                  <span className="text-gray-900">✓</span>
                   <span>{s}</span>
                 </li>
               ))}
             </ul>
           </div>
-          <div className="rounded-3xl border border-amber-100 bg-amber-50 p-6">
-            <h3 className="mb-3 text-xl font-bold text-amber-800">단점</h3>
-            <ul className="flex flex-col gap-2 text-lg text-amber-900">
+          <div className="rounded-3xl border border-gray-200 bg-white p-6">
+            <h3 className="mb-3 text-xl font-bold text-gray-900">단점</h3>
+            <ul className="flex flex-col gap-2 text-lg text-gray-700">
               {evaluation.weaknesses.map((w, i) => (
                 <li key={i} className="flex gap-2">
-                  <span className="text-amber-600">!</span>
+                  <span className="text-gray-400">!</span>
                   <span>{w}</span>
                 </li>
               ))}
