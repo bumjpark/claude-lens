@@ -51,32 +51,32 @@ export default function DashboardPage() {
   const activeCount = projects.filter((p) => !p.endedAt).length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-br from-indigo-600 to-blue-700 text-white">
+    <div className="min-h-screen bg-[#f7f7f7]">
+      <div className="bg-black text-white">
         <div className="mx-auto max-w-7xl px-8 py-14">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-base font-medium text-white/70">claude-lens</p>
-              <h1 className="mt-2 text-4xl font-bold">{getName()}님, 안녕하세요</h1>
-              <p className="mt-2 text-lg text-white/80">
+              <p className="text-base font-medium text-white/60">claude-lens</p>
+              <h1 className="mt-2 text-4xl font-bold tracking-tight">{getName()}님, 안녕하세요</h1>
+              <p className="mt-2 text-lg text-white/70">
                 AI Agent 협업 데이터를 기반으로 프로젝트별 성숙도를 확인하세요.
               </p>
             </div>
             <button
               onClick={handleLogout}
-              className="shrink-0 rounded-md border border-white/30 px-4 py-2 text-sm font-medium text-white hover:bg-white/10"
+              className="shrink-0 rounded-full border border-white/30 px-4 py-2 text-sm font-medium text-white hover:bg-white/10"
             >
               로그아웃
             </button>
           </div>
 
           <div className="mt-10 grid grid-cols-2 gap-6 sm:max-w-xl">
-            <div className="rounded-xl bg-white/10 p-6">
-              <p className="text-sm text-white/70">전체 프로젝트</p>
+            <div className="rounded-2xl bg-white/10 p-6">
+              <p className="text-sm text-white/60">전체 프로젝트</p>
               <p className="mt-2 text-4xl font-bold">{projects.length}</p>
             </div>
-            <div className="rounded-xl bg-white/10 p-6">
-              <p className="text-sm text-white/70">진행 중</p>
+            <div className="rounded-2xl bg-white/10 p-6">
+              <p className="text-sm text-white/60">진행 중</p>
               <p className="mt-2 text-4xl font-bold">{activeCount}</p>
             </div>
           </div>
@@ -91,7 +91,7 @@ export default function DashboardPage() {
           {!showForm && (
             <button
               onClick={() => setShowForm(true)}
-              className="rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700"
+              className="rounded-full bg-black px-4 py-2.5 text-sm font-bold text-white transition hover:bg-gray-800"
             >
               + 새 프로젝트
             </button>
@@ -101,7 +101,7 @@ export default function DashboardPage() {
         {showForm && (
           <form
             onSubmit={handleCreate}
-            className="mb-6 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+            className="mb-6 flex flex-col gap-3 rounded-3xl border border-gray-200 bg-white p-6"
           >
             <input
               type="text"
@@ -109,7 +109,7 @@ export default function DashboardPage() {
               placeholder="프로젝트 이름"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-600 focus:outline-none"
+              className="rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-black focus:outline-none"
             />
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <input
@@ -117,28 +117,28 @@ export default function DashboardPage() {
                 placeholder="언어 (선택, 예: Java)"
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-600 focus:outline-none"
+                className="rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-black focus:outline-none"
               />
               <input
                 type="text"
                 placeholder="프레임워크 (선택, 예: Spring Boot)"
                 value={framework}
                 onChange={(e) => setFramework(e.target.value)}
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-600 focus:outline-none"
+                className="rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-black focus:outline-none"
               />
             </div>
             <div className="flex gap-2">
               <button
                 type="submit"
                 disabled={creating}
-                className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+                className="rounded-full bg-black px-4 py-2.5 text-sm font-bold text-white transition hover:bg-gray-800 disabled:opacity-50"
               >
                 {creating ? '생성 중...' : '생성'}
               </button>
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="rounded-md px-3 py-2 text-sm text-gray-500"
+                className="rounded-full px-4 py-2.5 text-sm font-medium text-gray-500 hover:bg-gray-100"
               >
                 취소
               </button>
@@ -149,7 +149,7 @@ export default function DashboardPage() {
         {loading ? (
           <p className="text-sm text-gray-500">불러오는 중...</p>
         ) : projects.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-16 text-center">
+          <div className="rounded-3xl border border-dashed border-gray-300 bg-white p-16 text-center">
             <p className="text-lg font-medium text-gray-900">아직 프로젝트가 없습니다</p>
             <p className="mt-2 text-base text-gray-500">
               새 프로젝트를 만들고 CLI를 연결하면 Claude Code 협업 데이터를 분석할 수 있어요.
@@ -161,12 +161,12 @@ export default function DashboardPage() {
               <li key={p.id}>
                 <Link
                   to={`/projects/${p.id}`}
-                  className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-7 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md"
+                  className="flex h-full flex-col rounded-3xl border border-gray-200 bg-white p-7 transition hover:-translate-y-0.5 hover:border-gray-900"
                 >
                   <div className="mb-4 flex items-start justify-between gap-2">
                     <span className="text-lg font-semibold text-gray-900">{p.name}</span>
                     <span
-                      className={`shrink-0 rounded px-2.5 py-1 text-xs font-medium ${
+                      className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
                         p.endedAt ? 'bg-gray-100 text-gray-500' : 'bg-emerald-100 text-emerald-700'
                       }`}
                     >
@@ -175,12 +175,12 @@ export default function DashboardPage() {
                   </div>
                   <div className="mb-5 flex flex-wrap gap-2">
                     {p.language && (
-                      <span className="rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700">
+                      <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700">
                         {p.language}
                       </span>
                     )}
                     {p.framework && (
-                      <span className="rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700">
+                      <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700">
                         {p.framework}
                       </span>
                     )}

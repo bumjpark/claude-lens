@@ -90,13 +90,13 @@ export default function ProjectDetailPage() {
     <div className="w-full px-10 py-10">
       <Link
         to="/dashboard"
-        className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-lg font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+        className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-lg font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
       >
         <ArrowLeft className="h-5 w-5" />
         대시보드
       </Link>
 
-      <h1 className="mt-4 text-3xl font-semibold text-gray-900">{project.name}</h1>
+      <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900">{project.name}</h1>
       <p className="text-lg text-gray-500">
         {project.language ?? '언어 미지정'} · {project.framework ?? '프레임워크 미지정'}
       </p>
@@ -106,7 +106,7 @@ export default function ProjectDetailPage() {
         <div className="min-w-0 flex-1">
           <SectionHeader id="section-0" index={0} title="평가 개요" subtitle="Executive Summary" />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="rounded-3xl border border-gray-200 bg-white p-6">
               <h3 className="mb-3 text-xl font-semibold text-gray-900">분석 대상</h3>
               <ul className="flex flex-col gap-2 text-lg text-gray-600">
                 <li>
@@ -125,9 +125,9 @@ export default function ProjectDetailPage() {
                 </li>
               </ul>
             </div>
-            <div className="flex flex-col justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 p-6 text-white shadow-sm">
+            <div className="flex flex-col justify-center rounded-3xl bg-black p-6 text-white">
               <h3 className="mb-2 text-xl font-semibold">평가 목적</h3>
-              <p className="text-lg leading-relaxed text-white/90">
+              <p className="text-lg leading-relaxed text-white/80">
                 이 리포트는 Claude Code와 협업한 프롬프트 행동 데이터를 기반으로, AI를 어떤 방식으로
                 활용하고 있는지와 그 활용 방식이 개발 생산성·품질에 미치는 영향을 분석해 개선 방향을
                 제시합니다.
@@ -135,7 +135,7 @@ export default function ProjectDetailPage() {
             </div>
           </div>
 
-          <div className="mt-8 rounded-md border border-gray-200 p-6">
+          <div className="mt-8 rounded-3xl border border-gray-200 p-6">
             <h2 className="mb-2 text-xl font-semibold text-gray-900">이 프로젝트에 CLI 연결하기</h2>
 
             {revealedKey ? (
@@ -143,11 +143,11 @@ export default function ProjectDetailPage() {
                 <p className="mb-3 text-lg text-gray-500">
                   아래 명령어를 프로젝트 루트에서 실행하면 이 프로젝트의 Claude Code 대화 기록을 자동으로 수집합니다.
                 </p>
-                <div className="flex items-start gap-2 rounded-md bg-gray-100 p-3">
+                <div className="flex items-start gap-2 rounded-xl bg-gray-100 p-3">
                   <code className="flex-1 whitespace-pre-wrap break-all text-base text-gray-800">{command}</code>
                   <button
                     onClick={handleCopy}
-                    className="shrink-0 rounded-md bg-gray-900 px-3 py-1.5 text-base font-medium text-white"
+                    className="shrink-0 rounded-full bg-black px-4 py-1.5 text-base font-bold text-white transition hover:bg-gray-800"
                   >
                     {copied ? '복사됨' : '복사'}
                   </button>
@@ -166,12 +166,12 @@ export default function ProjectDetailPage() {
                   API Key는 최초 생성 시에만 전체가 표시됩니다. 이미 CLI에 설정해두셨다면 그대로 사용하시고,
                   분실하셨다면 재발급하세요 (재발급 시 기존 키는 즉시 무효화됩니다).
                 </p>
-                <div className="flex items-center justify-between rounded-md bg-gray-100 p-3">
+                <div className="flex items-center justify-between rounded-xl bg-gray-100 p-3">
                   <code className="text-base text-gray-500">{project.apiKey}</code>
                   <button
                     onClick={handleRegenerate}
                     disabled={regenerating}
-                    className="shrink-0 rounded-md border border-gray-300 px-3 py-1.5 text-base font-medium text-gray-700 disabled:opacity-50"
+                    className="shrink-0 rounded-full border border-gray-300 px-4 py-1.5 text-base font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                   >
                     {regenerating ? '재발급 중...' : '재발급'}
                   </button>
