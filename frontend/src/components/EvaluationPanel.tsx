@@ -26,14 +26,14 @@ function AnalysisStepper({ progress }: { progress: AnalysisProgress | null }) {
   const percent = Math.round((doneCount / ANALYSIS_STEPS.length) * 100);
 
   return (
-    <div className="w-full rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/70 to-white p-6 shadow-sm">
+    <div className="w-full rounded-3xl border border-gray-200 bg-gray-50 p-6">
       <div className="mb-5 flex items-center justify-between">
         <span className="text-base font-semibold text-gray-700">분석 진행률</span>
-        <span className="text-xl font-bold text-indigo-600">{percent}%</span>
+        <span className="text-xl font-bold text-gray-900">{percent}%</span>
       </div>
-      <div className="mb-6 h-1.5 w-full rounded-full bg-gray-100">
+      <div className="mb-6 h-1.5 w-full rounded-full bg-gray-200">
         <div
-          className="h-1.5 rounded-full bg-indigo-600 transition-all duration-500"
+          className="h-1.5 rounded-full bg-black transition-all duration-500"
           style={{ width: `${percent}%` }}
         />
       </div>
@@ -47,9 +47,9 @@ function AnalysisStepper({ progress }: { progress: AnalysisProgress | null }) {
                 <div
                   className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 text-base font-bold transition-all duration-300 ${
                     isDone
-                      ? 'border-indigo-600 bg-indigo-600 text-white'
+                      ? 'border-black bg-black text-white'
                       : isCurrent
-                        ? 'border-indigo-600 bg-white text-indigo-600 ring-4 ring-indigo-100'
+                        ? 'border-black bg-white text-black ring-4 ring-gray-200'
                         : 'border-gray-200 bg-white text-gray-300'
                   }`}
                 >
@@ -63,7 +63,7 @@ function AnalysisStepper({ progress }: { progress: AnalysisProgress | null }) {
                 </div>
                 <span
                   className={`text-sm leading-tight font-medium ${
-                    isCurrent ? 'text-indigo-700' : isDone ? 'text-gray-600' : 'text-gray-400'
+                    isCurrent ? 'text-gray-900' : isDone ? 'text-gray-600' : 'text-gray-400'
                   }`}
                 >
                   {step.label}
@@ -72,7 +72,7 @@ function AnalysisStepper({ progress }: { progress: AnalysisProgress | null }) {
               {idx < ANALYSIS_STEPS.length - 1 && (
                 <div
                   className={`mt-[22px] h-0.5 flex-1 rounded-full transition-colors duration-300 ${
-                    isDone ? 'bg-indigo-600' : 'bg-gray-200'
+                    isDone ? 'bg-black' : 'bg-gray-200'
                   }`}
                 />
               )}
@@ -101,16 +101,14 @@ const PRIORITY_LABEL: Record<string, string> = {
 };
 
 const PRIORITY_STYLE: Record<string, string> = {
-  high: 'bg-red-100 text-red-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  low: 'bg-gray-100 text-gray-600',
+  high: 'bg-gray-900 text-white',
+  medium: 'bg-gray-200 text-gray-700',
+  low: 'bg-gray-100 text-gray-500',
 };
-
-const BADGE_COLORS = ['bg-indigo-600', 'bg-purple-600', 'bg-emerald-600'];
 
 function AnalysisBlock({ title, text }: { title: string; text: string }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div className="rounded-3xl border border-gray-200 bg-white p-6">
       <h3 className="mb-2 text-lg font-bold text-gray-900">{title}</h3>
       <p className="text-lg leading-relaxed text-gray-600">{text}</p>
     </div>
@@ -134,8 +132,8 @@ function StatCard({
 }) {
   return (
     <div
-      className={`rounded-2xl border p-6 shadow-sm ${
-        tinted ? 'border-indigo-100 bg-indigo-50/40' : 'border-gray-200 bg-white'
+      className={`rounded-3xl border p-6 ${
+        tinted ? 'border-gray-200 bg-gray-50' : 'border-gray-200 bg-white'
       }`}
     >
       <div className={`mb-3 flex h-11 w-11 items-center justify-center rounded-lg ${iconClass}`}>{icon}</div>
@@ -155,35 +153,35 @@ const CONSULT_CATEGORY_META: Record<
     label: '입력(Input) 관점',
     title: '7.1 입력(Input) 관점',
     subtitle: 'Context & Prompt Engineering',
-    badgeColor: 'bg-indigo-600',
+    badgeColor: 'bg-black',
   },
   prompt_efficiency: {
     index: 2,
     label: '프롬프트 효율성',
     title: '7.2 프롬프트 효율성',
     subtitle: 'Prompt Count & Process Efficiency',
-    badgeColor: 'bg-purple-600',
+    badgeColor: 'bg-black',
   },
   technical_depth: {
     index: 3,
     label: '기술적 프롬프트 깊이',
     title: '7.3 기술적 프롬프트 깊이',
     subtitle: 'Technical Prompt Depth',
-    badgeColor: 'bg-emerald-600',
+    badgeColor: 'bg-black',
   },
   validation_maturity: {
     index: 4,
     label: '검증 성숙도',
     title: '7.4 검증 체계',
     subtitle: 'Validation & Quality Assurance',
-    badgeColor: 'bg-blue-600',
+    badgeColor: 'bg-black',
   },
   token_efficiency: {
     index: 5,
     label: '토큰 활용 효율',
     title: '7.5 토큰 활용 효율',
     subtitle: 'Token Utilization Efficiency',
-    badgeColor: 'bg-fuchsia-600',
+    badgeColor: 'bg-black',
   },
 };
 
@@ -192,7 +190,7 @@ function ConsultCategoryCard({ item, fullWidth }: { item: ConsultCategory; fullW
   if (!meta) return null;
   return (
     <div
-      className={`rounded-2xl border border-gray-200 bg-white p-6 shadow-sm ${fullWidth ? 'sm:col-span-2' : ''}`}
+      className={`rounded-3xl border border-gray-200 bg-white p-6 ${fullWidth ? 'sm:col-span-2' : ''}`}
     >
       <div className="mb-4 flex items-center gap-3">
         <span
@@ -212,7 +210,7 @@ function ConsultCategoryCard({ item, fullWidth }: { item: ConsultCategory; fullW
         </div>
         <div className="h-2 w-full rounded-full bg-gray-200">
           <div
-            className="h-2 rounded-full bg-indigo-600"
+            className="h-2 rounded-full bg-black"
             style={{ width: `${(item.score / 5) * 100}%` }}
           />
         </div>
@@ -299,7 +297,7 @@ export default function EvaluationPanel({
 
   if (needsAnalysis || !evaluation) {
     return (
-      <div className="mt-8 rounded-md border border-gray-200 p-6">
+      <div className="mt-8 rounded-3xl border border-gray-200 p-6">
         <h2 className="mb-2 text-xl font-semibold text-gray-900">AI 분석</h2>
         <p className="mb-3 text-lg text-gray-500">
           아직 분석 결과가 없습니다. CLI로 대화 기록을 업로드한 뒤 분석을 실행해보세요.
@@ -308,7 +306,7 @@ export default function EvaluationPanel({
         <button
           onClick={handleAnalyze}
           disabled={analyzing}
-          className="rounded-md bg-gray-900 px-4 py-2.5 text-lg font-medium text-white disabled:opacity-50"
+          className="rounded-full bg-black px-5 py-2.5 text-lg font-bold text-white transition hover:bg-gray-800 disabled:opacity-50"
         >
           {analyzing ? '분석 중... (최대 1~2분 소요)' : '분석 실행'}
         </button>
@@ -328,7 +326,7 @@ export default function EvaluationPanel({
           <button
             onClick={handleAnalyze}
             disabled={analyzing}
-            className="shrink-0 rounded-md border border-gray-300 px-4 py-2 text-base font-medium text-gray-700 disabled:opacity-50"
+            className="shrink-0 rounded-full border border-gray-300 px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
           >
             {analyzing ? '분석 중...' : '다시 분석'}
           </button>
@@ -364,9 +362,9 @@ export default function EvaluationPanel({
             caption="요청당 중앙값 응답 시간"
           />
         </div>
-        <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-purple-50 p-6">
+        <div className="rounded-3xl border border-gray-200 bg-gray-50 p-6">
           <div className="mb-2 flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-indigo-600" />
+            <TrendingUp className="h-5 w-5 text-gray-900" />
             <h3 className="text-xl font-bold text-gray-900">해석 (요약)</h3>
           </div>
           <p className="text-lg leading-relaxed text-gray-700">{evaluation.activitySummary}</p>
@@ -379,7 +377,7 @@ export default function EvaluationPanel({
           {evaluation.keyConclusions.map((c, i) => (
             <div
               key={i}
-              className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-purple-50 p-6"
+              className="rounded-3xl border border-gray-200 bg-gray-50 p-6"
             >
               <p className="text-lg leading-relaxed font-medium text-gray-800">{c}</p>
             </div>
@@ -388,11 +386,9 @@ export default function EvaluationPanel({
         <h3 className="mb-3 text-xl font-semibold text-gray-900">개선 우선순위 Top 3</h3>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {evaluation.recommendations.map((r, i) => (
-            <div key={r.id} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div key={r.id} className="rounded-3xl border border-gray-200 bg-white p-6">
               <div className="mb-3 flex items-center gap-3">
-                <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white ${BADGE_COLORS[i % BADGE_COLORS.length]}`}
-                >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black text-lg font-bold text-white">
                   {i + 1}
                 </span>
                 <p className="text-xl font-semibold text-gray-900">{r.problem}</p>
@@ -419,7 +415,7 @@ export default function EvaluationPanel({
         <SectionHeader id="section-3" index={3} title="주요 작업 분석" subtitle="Case Studies" />
         <div className="grid grid-cols-1 gap-4">
           {evaluation.caseStudies.map((c, i) => (
-            <div key={i} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div key={i} className="rounded-3xl border border-gray-200 bg-white p-6">
               <h3 className="mb-3 text-xl font-semibold text-gray-900">{c.title}</h3>
               <p className="mb-2 text-base text-gray-500">
                 <span className="font-medium text-gray-700">구조적 문제:</span> {c.structuralIssue}
@@ -434,23 +430,23 @@ export default function EvaluationPanel({
       <section>
         <SectionHeader id="section-4" index={4} title="작업의 장점과 단점" subtitle="Strengths & Weaknesses" />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-6">
-            <h3 className="mb-3 text-xl font-bold text-emerald-800">강점</h3>
-            <ul className="flex flex-col gap-2 text-lg text-emerald-900">
+          <div className="rounded-3xl border border-gray-200 bg-gray-50 p-6">
+            <h3 className="mb-3 text-xl font-bold text-gray-900">강점</h3>
+            <ul className="flex flex-col gap-2 text-lg text-gray-700">
               {evaluation.strengths.map((s, i) => (
                 <li key={i} className="flex gap-2">
-                  <span className="text-emerald-600">✓</span>
+                  <span className="text-gray-900">✓</span>
                   <span>{s}</span>
                 </li>
               ))}
             </ul>
           </div>
-          <div className="rounded-2xl border border-amber-100 bg-amber-50 p-6">
-            <h3 className="mb-3 text-xl font-bold text-amber-800">단점</h3>
-            <ul className="flex flex-col gap-2 text-lg text-amber-900">
+          <div className="rounded-3xl border border-gray-200 bg-white p-6">
+            <h3 className="mb-3 text-xl font-bold text-gray-900">단점</h3>
+            <ul className="flex flex-col gap-2 text-lg text-gray-700">
               {evaluation.weaknesses.map((w, i) => (
                 <li key={i} className="flex gap-2">
-                  <span className="text-amber-600">!</span>
+                  <span className="text-gray-400">!</span>
                   <span>{w}</span>
                 </li>
               ))}
@@ -463,8 +459,8 @@ export default function EvaluationPanel({
         <SectionHeader id="section-5" index={5} title="AI 상호작용 패턴 분석" subtitle="Interaction Patterns" />
         <div className="mb-4 flex flex-col gap-3">
           {evaluation.interactionPatterns.map((p, i) => (
-            <div key={i} className="flex gap-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-              <Layers className="mt-0.5 h-5 w-5 shrink-0 text-indigo-600" />
+            <div key={i} className="flex gap-3 rounded-3xl border border-gray-200 bg-white p-5">
+              <Layers className="mt-0.5 h-5 w-5 shrink-0 text-gray-900" />
               <div>
                 <p className="font-semibold text-gray-900">{p.patternName}</p>
                 <p className="text-base text-gray-600">{p.description}</p>
@@ -478,7 +474,7 @@ export default function EvaluationPanel({
       <section>
         <SectionHeader id="section-6" index={6} title="AI Agent 활용 평가" subtitle="Agent Usage Evaluation" />
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
-          <div className="flex flex-col justify-center gap-3 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 p-8 text-white shadow-sm">
+          <div className="flex flex-col justify-center gap-3 rounded-3xl bg-black p-8 text-white">
             <span className="w-fit rounded-md bg-white/20 px-4 py-1.5 text-4xl font-bold">
               {evaluation.grade}
             </span>
@@ -502,7 +498,7 @@ export default function EvaluationPanel({
             />
           ))}
         </div>
-        <div className="mb-4 flex flex-col justify-center gap-3 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 p-8 text-white shadow-sm">
+        <div className="mb-4 flex flex-col justify-center gap-3 rounded-3xl bg-black p-8 text-white">
           <div className="flex items-center gap-2">
             <Award className="h-6 w-6" />
             <span className="text-base text-white/80">종합 점수 {evaluation.consultTotalScore} / 25</span>

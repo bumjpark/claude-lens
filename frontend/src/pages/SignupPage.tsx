@@ -29,63 +29,78 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-4">
-      <h1 className="text-2xl font-semibold text-gray-900">claude-lens 회원가입</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          type="email"
-          required
-          placeholder="이메일"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none"
-        />
-        <input
-          type="password"
-          required
-          placeholder="비밀번호"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none"
-        />
-        <input
-          type="text"
-          required
-          placeholder="이름"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none"
-        />
-        <select
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm"
-        >
-          <option value="backend">Backend</option>
-          <option value="frontend">Frontend</option>
-          <option value="fullstack">Fullstack</option>
-        </select>
-        <select
-          value={experienceLevel}
-          onChange={(e) => setExperienceLevel(e.target.value)}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm"
-        >
-          <option value="junior">Junior</option>
-          <option value="mid">Mid</option>
-          <option value="senior">Senior</option>
-        </select>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
-        >
-          {loading ? '가입 중...' : '회원가입'}
-        </button>
-      </form>
-      <p className="text-sm text-gray-500">
-        이미 계정이 있으신가요? <Link to="/login" className="text-gray-900 underline">로그인</Link>
-      </p>
+    <div className="flex min-h-screen items-center justify-center bg-[#f7f7f7] px-4 py-12">
+      <div className="w-full max-w-sm">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-black text-base font-bold text-white">
+            CL
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">claude-lens 시작하기</h1>
+          <p className="mt-2 text-sm text-gray-500">몇 가지 정보만 입력하면 바로 시작할 수 있어요</p>
+        </div>
+
+        <div className="rounded-3xl border border-gray-200 bg-white p-8">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <input
+              type="email"
+              required
+              placeholder="이메일"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-black focus:outline-none"
+            />
+            <input
+              type="password"
+              required
+              placeholder="비밀번호"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-black focus:outline-none"
+            />
+            <input
+              type="text"
+              required
+              placeholder="이름"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-black focus:outline-none"
+            />
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 focus:border-black focus:outline-none"
+            >
+              <option value="backend">Backend</option>
+              <option value="frontend">Frontend</option>
+              <option value="fullstack">Fullstack</option>
+            </select>
+            <select
+              value={experienceLevel}
+              onChange={(e) => setExperienceLevel(e.target.value)}
+              className="rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 focus:border-black focus:outline-none"
+            >
+              <option value="junior">Junior</option>
+              <option value="mid">Mid</option>
+              <option value="senior">Senior</option>
+            </select>
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 rounded-full bg-black px-6 py-3 text-sm font-bold text-white transition hover:bg-gray-800 disabled:opacity-50"
+            >
+              {loading ? '가입 중...' : '회원가입'}
+            </button>
+          </form>
+        </div>
+
+        <p className="mt-6 text-center text-sm text-gray-500">
+          이미 계정이 있으신가요?{' '}
+          <Link to="/login" className="font-semibold text-gray-900 underline underline-offset-2">
+            로그인
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

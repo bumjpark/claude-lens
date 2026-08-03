@@ -47,19 +47,19 @@ export default function ReportNav({ sections }: { sections: ReportSection[] }) {
                 document.getElementById(section.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
               }
               className={`relative flex items-center gap-3 rounded-xl px-2 py-3 text-left transition-colors ${
-                isActive ? 'bg-indigo-50' : 'hover:bg-gray-50'
+                isActive ? 'bg-gray-100' : 'hover:bg-gray-50'
               }`}
             >
               <span
                 className={`relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 text-lg font-bold transition-colors ${
                   isActive
-                    ? 'border-indigo-600 bg-indigo-600 text-white'
+                    ? 'border-black bg-black text-white'
                     : 'border-gray-300 bg-white text-gray-400'
                 }`}
               >
                 {i}
               </span>
-              <span className={`text-lg font-medium ${isActive ? 'text-indigo-700' : 'text-gray-500'}`}>
+              <span className={`text-lg font-medium ${isActive ? 'text-gray-900' : 'text-gray-500'}`}>
                 {section.title}
               </span>
             </button>

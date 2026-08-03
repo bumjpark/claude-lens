@@ -11,7 +11,7 @@ export default function SectionHeader({
 }) {
   return (
     <div id={id} className="mb-5 flex scroll-mt-24 items-center gap-4">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-indigo-600 text-lg font-bold text-white">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black text-lg font-bold text-white">
         {index}
       </span>
       <div>
