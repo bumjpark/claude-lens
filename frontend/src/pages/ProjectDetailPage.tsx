@@ -63,12 +63,27 @@ export default function ProjectDetailPage() {
     return <div className="w-full px-10 py-10 text-base text-gray-500">불러오는 중...</div>;
   }
 
-  const command = `npx claude-lens init --project-id ${project.id} --api-key ${revealedKey ?? project.apiKey}`;
+  const command = `npx claude-lens-cli init --project-id ${project.id} --api-key ${revealedKey ?? project.apiKey}`;
 
-  function handleCopy() {
-    navigator.clipboard.writeText(command);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+  async function handleCopy() {
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(command);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = command;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      setError('클립보드 복사에 실패했습니다. 직접 선택해서 복사해주세요.');
+    }
   }
 
   return (
