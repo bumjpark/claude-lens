@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { getProject, regenerateApiKey, ApiError, type Project } from '../lib/api';
+import { getProject, regenerateApiKey, ApiError, API_BASE_URL, type Project } from '../lib/api';
 import { getName } from '../lib/auth';
 import EvaluationPanel from '../components/EvaluationPanel';
 import SectionHeader from '../components/SectionHeader';
@@ -63,7 +63,7 @@ export default function ProjectDetailPage() {
     return <div className="w-full px-10 py-10 text-base text-gray-500">불러오는 중...</div>;
   }
 
-  const command = `npx claude-lens-cli init --project-id ${project.id} --api-key ${revealedKey ?? project.apiKey}`;
+  const command = `npx claude-lens-cli init --project-id ${project.id} --api-key ${revealedKey ?? project.apiKey} --base-url ${API_BASE_URL}`;
 
   async function handleCopy() {
     try {
