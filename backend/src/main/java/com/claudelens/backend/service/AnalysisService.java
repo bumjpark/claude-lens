@@ -32,6 +32,7 @@ public class AnalysisService {
     private final EvaluationRepository evaluationRepository;
     private final RecommendationRepository recommendationRepository;
     private final TaskRepository taskRepository;
+    private final PaymentRepository paymentRepository;
     private final AiAnalysisClient aiAnalysisClient;
 
     @Transactional
@@ -52,7 +53,7 @@ public class AnalysisService {
         Evaluation evaluation = saveEvaluation(project, aiResponse, logs);
         List<Recommendation> recommendations = saveRecommendations(evaluation, aiResponse.getRecommendations());
 
-        return EvaluationResponse.from(evaluation, recommendations);
+        return EvaluationResponse.from(evaluation, recommendations, isPaid(projectId));
     }
 
     @Transactional(readOnly = true)
@@ -77,7 +78,11 @@ public class AnalysisService {
         List<Recommendation> recommendations =
                 recommendationRepository.findByEvaluationIdOrderByOrderIndex(evaluation.getId());
 
-        return EvaluationResponse.from(evaluation, recommendations);
+        return EvaluationResponse.from(evaluation, recommendations, isPaid(projectId));
+    }
+
+    private boolean isPaid(UUID projectId) {
+        return paymentRepository.existsByProjectIdAndStatus(projectId, PaymentStatus.PAID);
     }
 
     // 재분석 시 이전 결과를 지우고 새로 채운다 (누적이 아니라 최신 분석으로 대체)

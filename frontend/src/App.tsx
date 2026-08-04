@@ -3,6 +3,8 @@ import SignupPage from './pages/SignupPage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import PaymentFailPage from './pages/PaymentFailPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { getToken } from './lib/auth';
 
@@ -25,6 +27,22 @@ export default function App() {
         element={
           <ProtectedRoute>
             <ProjectDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/payments/success"
+        element={
+          <ProtectedRoute>
+            <PaymentSuccessPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/payments/fail"
+        element={
+          <ProtectedRoute>
+            <PaymentFailPage />
           </ProtectedRoute>
         }
       />
