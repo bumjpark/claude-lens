@@ -1,5 +1,7 @@
+import logging
 import os
 
+from langchain_core.exceptions import OutputParserException
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 
@@ -21,9 +23,27 @@ from app.schemas import (
 
 MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o")
 
+logger = logging.getLogger(__name__)
+
 
 def _llm(schema):
     return ChatOpenAI(model=MODEL, temperature=0).with_structured_output(schema)
+
+
+# LLM이 드물게 같은 구절을 반복하다 응답이 깨져서(OutputParserException) 구조화 출력
+# 파싱에 실패하는 경우가 있다. temperature=0이라도 재시도 시 다른 응답이 나올 수 있어서
+# 몇 번 재시도해서 넘긴다.
+def _invoke_with_retry(llm, messages, retries=2):
+    last_error = None
+    for attempt in range(retries + 1):
+        try:
+            return llm.invoke(messages)
+        except OutputParserException as e:
+            last_error = e
+            logger.warning(
+                "LLM 구조화 출력 파싱 실패, 재시도 %d/%d", attempt + 1, retries + 1
+            )
+    raise last_error
 
 
 def compute_behavior_stats(interactions) -> str:
@@ -52,7 +72,8 @@ def prompt_quality_node(state: PipelineState) -> dict:
 
     for start in range(0, len(interactions), PROMPT_QUALITY_CHUNK_SIZE):
         chunk = interactions[start : start + PROMPT_QUALITY_CHUNK_SIZE]
-        result: PromptQualityBatch = llm.invoke(
+        result: PromptQualityBatch = _invoke_with_retry(
+            llm,
             [
                 SystemMessage(content=PROMPT_QUALITY_SYSTEM),
                 HumanMessage(
@@ -82,7 +103,8 @@ def deep_analysis_node(state: PipelineState) -> dict:
     set_stage(state.project_id, 2)
     llm = _llm(DeepAnalysisResult)
     quality_summary = format_quality_summary(state.prompt_analyses)
-    result: DeepAnalysisResult = llm.invoke(
+    result: DeepAnalysisResult = _invoke_with_retry(
+        llm,
         [
             SystemMessage(content=DEEP_ANALYSIS_SYSTEM),
             HumanMessage(
@@ -102,7 +124,8 @@ def consult_review_node(state: PipelineState) -> dict:
     llm = _llm(ConsultReviewResult)
     quality_summary = format_quality_summary(state.prompt_analyses)
     da = state.deep_analysis
-    result: ConsultReviewResult = llm.invoke(
+    result: ConsultReviewResult = _invoke_with_retry(
+        llm,
         [
             SystemMessage(content=CONSULT_REVIEW_SYSTEM),
             HumanMessage(
@@ -126,7 +149,8 @@ def recommendation_node(state: PipelineState) -> dict:
     quality_summary = "\n".join(f"- {qa.log_id}: {qa.evidence}" for qa in state.prompt_analyses)
     da = state.deep_analysis
     cr = state.consult_review
-    result: RecommendationBatch = llm.invoke(
+    result: RecommendationBatch = _invoke_with_retry(
+        llm,
         [
             SystemMessage(content=RECOMMENDATION_SYSTEM),
             HumanMessage(
