@@ -35,7 +35,10 @@ public class PaymentController {
             @PathVariable UUID projectId,
             @Valid @RequestBody PaymentConfirmRequest request) {
         paymentService.confirm(userDetails.getUsername(), request);
-        return ResponseEntity.ok().build();
+        // 프론트 request()는 204일 때만 res.json() 파싱을 건너뛴다. 200 + 빈 바디로
+        // 응답하면 빈 문자열을 JSON으로 파싱하려다 SyntaxError가 나서, 실제로는 결제가
+        // 성공했는데도 프론트가 실패로 오인하는 문제가 있었다.
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/status")
