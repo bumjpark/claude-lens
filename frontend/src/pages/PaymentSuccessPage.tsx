@@ -20,7 +20,13 @@ export default function PaymentSuccessPage() {
 
     confirmPayment(projectId, { orderId, paymentKey, amount: Number(amount) })
       .then(() => navigate(`/projects/${projectId}`, { replace: true }))
-      .catch((err) => setError(err instanceof ApiError ? err.message : '결제 승인에 실패했습니다'));
+      .catch((err) =>
+        setError(
+          err instanceof ApiError
+            ? err.message
+            : '승인 처리 중 문제가 발생했습니다. 결제 자체는 완료됐을 수 있으니, 프로젝트 페이지에서 열람 가능 여부를 다시 확인해주세요.',
+        ),
+      );
   }, [searchParams, navigate]);
 
   return (
@@ -28,7 +34,7 @@ export default function PaymentSuccessPage() {
       <div className="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-8 text-center">
         {error ? (
           <>
-            <h1 className="text-xl font-bold text-gray-900">결제 승인에 실패했습니다</h1>
+            <h1 className="text-xl font-bold text-gray-900">확인이 필요해요</h1>
             <p className="mt-2 text-sm text-gray-500">{error}</p>
             <Link to="/dashboard" className="mt-6 inline-block text-sm font-semibold text-gray-900 underline">
               대시보드로 돌아가기

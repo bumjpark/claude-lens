@@ -26,8 +26,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     throw new ApiError(message);
   }
 
-  if (res.status === 204) return undefined as T;
-  return res.json();
+  // 200이어도 바디가 비어있는 응답이 있을 수 있어서(예: 204 대신 200으로 내려오는 경우),
+  // 상태 코드만 보고 바로 res.json()을 부르면 빈 문자열 파싱 실패로 성공을 실패로
+  // 오인할 수 있다. 텍스트로 먼저 읽고 비어있으면 파싱을 건너뛴다.
+  const text = await res.text();
+  if (!text) return undefined as T;
+  return JSON.parse(text);
 }
 
 export interface AuthResponse {
