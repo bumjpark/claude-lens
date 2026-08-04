@@ -22,12 +22,15 @@ from app.schemas import (
 )
 
 MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o")
+# 1단계는 상호작용을 5건씩 쪼개 여러 번 호출해서 비용 비중이 가장 크다.
+# 점수 매기기 위주의 비교적 단순한 작업이라 저렴한 모델로도 충분해서 따로 분리한다.
+MODEL_LIGHT = os.environ.get("OPENAI_MODEL_LIGHT", "gpt-4o-mini")
 
 logger = logging.getLogger(__name__)
 
 
-def _llm(schema):
-    return ChatOpenAI(model=MODEL, temperature=0).with_structured_output(schema)
+def _llm(schema, model=MODEL):
+    return ChatOpenAI(model=model, temperature=0).with_structured_output(schema)
 
 
 # LLM이 드물게 같은 구절을 반복하다 응답이 깨져서(OutputParserException) 구조화 출력
@@ -66,7 +69,7 @@ PROMPT_QUALITY_CHUNK_SIZE = 5
 
 def prompt_quality_node(state: PipelineState) -> dict:
     set_stage(state.project_id, 1)
-    llm = _llm(PromptQualityBatch)
+    llm = _llm(PromptQualityBatch, model=MODEL_LIGHT)
     interactions = state.interactions
     all_results = []
 
@@ -99,6 +102,12 @@ def format_quality_summary(prompt_analyses) -> str:
     )
 
 
+# 3~4단계는 1단계의 점수 자체보다 인용 근거만 있으면 충분하다 (점수는 2단계 심층 분석에서
+# 이미 종합됐음). 매번 같은 원본 요약 전체를 다시 보내는 대신 가벼운 버전을 쓴다.
+def format_evidence_digest(prompt_analyses) -> str:
+    return "\n".join(f"- {qa.log_id}: {qa.evidence}" for qa in prompt_analyses)
+
+
 def deep_analysis_node(state: PipelineState) -> dict:
     set_stage(state.project_id, 2)
     llm = _llm(DeepAnalysisResult)
@@ -122,7 +131,7 @@ def deep_analysis_node(state: PipelineState) -> dict:
 def consult_review_node(state: PipelineState) -> dict:
     set_stage(state.project_id, 3)
     llm = _llm(ConsultReviewResult)
-    quality_summary = format_quality_summary(state.prompt_analyses)
+    evidence_digest = format_evidence_digest(state.prompt_analyses)
     da = state.deep_analysis
     result: ConsultReviewResult = _invoke_with_retry(
         llm,
@@ -135,7 +144,7 @@ def consult_review_node(state: PipelineState) -> dict:
                     f"[심층 분석 결과]\n"
                     f"핵심 결론: {da.key_conclusions}\n강점: {da.strengths}\n약점: {da.weaknesses}\n"
                     f"패턴 분석: {da.pattern_analysis}\n작업 흐름: {da.task_flow_analysis}\n\n"
-                    f"[1단계 프롬프트 품질 분석 결과 (시간 순)]\n{quality_summary}"
+                    f"[1단계 프롬프트별 근거]\n{evidence_digest}"
                 )
             ),
         ]
@@ -146,7 +155,7 @@ def consult_review_node(state: PipelineState) -> dict:
 def recommendation_node(state: PipelineState) -> dict:
     set_stage(state.project_id, 4)
     llm = _llm(RecommendationBatch)
-    quality_summary = "\n".join(f"- {qa.log_id}: {qa.evidence}" for qa in state.prompt_analyses)
+    evidence_digest = format_evidence_digest(state.prompt_analyses)
     da = state.deep_analysis
     cr = state.consult_review
     result: RecommendationBatch = _invoke_with_retry(
@@ -161,7 +170,7 @@ def recommendation_node(state: PipelineState) -> dict:
                     f"[AI Agent 활용 평가]\n"
                     f"등급: {cr.grade}, 성숙도: {cr.maturity_level}\n"
                     f"Agent 활용 방식: {cr.agent_usage_analysis}\n\n"
-                    f"[프롬프트별 근거]\n{quality_summary}"
+                    f"[프롬프트별 근거]\n{evidence_digest}"
                 )
             ),
         ]
