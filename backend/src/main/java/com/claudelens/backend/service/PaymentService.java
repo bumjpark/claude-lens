@@ -37,7 +37,10 @@ public class PaymentService {
         User user = getUser(email);
         Project project = getOwnedProject(user, projectId);
 
-        String orderId = "report-" + project.getId() + "-" + UUID.randomUUID();
+        // orderId는 토스 쪽 제약으로 64자를 넘으면 안 된다. project.getId()까지 붙이면
+        // 80자가 되어 결제창 호출 시 거부당했음 — payments 테이블에 project FK로 이미
+        // 연결돼 있어서 orderId 자체에 프로젝트를 인코딩할 필요는 없다.
+        String orderId = "report-" + UUID.randomUUID();
         Payment payment = Payment.builder()
                 .project(project)
                 .user(user)
