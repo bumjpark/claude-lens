@@ -25,7 +25,7 @@ public class AiAnalysisClient {
         // 처리하지 못해 요청 body가 깨진다. 순수 HTTP/1.1만 쓰는 요청 팩토리로 고정한다.
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(10_000);
-        requestFactory.setReadTimeout(180_000); // 4단계 LLM 호출이 연쇄되어 오래 걸릴 수 있음
+        requestFactory.setReadTimeout(600_000); // 4단계 LLM 호출이 연쇄되어 오래 걸릴 수 있음 (1단계만 5건씩 청크로 순차 호출)
 
         this.restClient = RestClient.builder()
                 .baseUrl(aiServiceUrl)
