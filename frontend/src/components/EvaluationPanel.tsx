@@ -1,14 +1,16 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Activity, Award, Check, CheckCircle2, Clock, Layers, Loader2, TrendingUp, Zap } from 'lucide-react';
+import { Activity, Award, Check, CheckCircle2, Clock, Layers, Loader2, Lock, TrendingUp, Zap } from 'lucide-react';
 import {
   ApiError,
   getAnalysisProgress,
   getEvaluation,
+  preparePayment,
   runAnalysis,
   type AnalysisProgress,
   type ConsultCategory,
   type Evaluation,
 } from '../lib/api';
+import { startReportPayment } from '../lib/toss';
 import SectionHeader from './SectionHeader';
 
 const ANALYSIS_STEPS = [
@@ -229,6 +231,82 @@ function ConsultCategoryCard({ item, fullWidth }: { item: ConsultCategory; fullW
   );
 }
 
+// 결제 전엔 서버가 실제 데이터를 안 내려주므로, 블러 처리할 내용도 실제 텍스트가 아니라
+// 레이아웃만 흉내 낸 스켈레톤이다 (DOM을 그대로 봐도 원문이 없어야 진짜 페이월이 된다).
+function PaywallPlaceholder() {
+  return (
+    <div className="flex flex-col gap-8">
+      <section>
+        <h3 className="mb-4 text-xl font-semibold text-gray-900">주요 작업 분석 · 장단점 · 상호작용 패턴</h3>
+        <div className="grid grid-cols-1 gap-4">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="rounded-3xl border border-gray-200 bg-white p-6">
+              <div className="mb-3 h-5 w-2/3 rounded bg-gray-200" />
+              <div className="mb-2 h-4 w-full rounded bg-gray-100" />
+              <div className="h-4 w-5/6 rounded bg-gray-100" />
+            </div>
+          ))}
+        </div>
+      </section>
+      <section>
+        <h3 className="mb-4 text-xl font-semibold text-gray-900">AI Agent 활용 평가 · 컨설트 총평</h3>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="rounded-3xl border border-gray-200 bg-white p-6">
+              <div className="mb-3 h-5 w-1/2 rounded bg-gray-200" />
+              <div className="h-2 w-full rounded-full bg-gray-100" />
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function ReportPaywall({ projectId }: { projectId: string }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handlePay() {
+    setLoading(true);
+    setError(null);
+    try {
+      const order = await preparePayment(projectId);
+      await startReportPayment(projectId, order);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : '결제를 시작하지 못했습니다');
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="relative">
+      <div aria-hidden className="pointer-events-none blur-md select-none">
+        <PaywallPlaceholder />
+      </div>
+      <div className="absolute inset-0 flex items-start justify-center pt-10">
+        <div className="mx-4 w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-8 text-center shadow-2xl">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-black text-white">
+            <Lock className="h-6 w-6" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900">전체 리포트 잠금 해제</h3>
+          <p className="mt-2 text-base text-gray-500">
+            주요 작업 사례, 장단점, AI Agent 활용 등급, 5개 항목 컨설트 총평까지 전부 확인하세요.
+          </p>
+          {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+          <button
+            onClick={handlePay}
+            disabled={loading}
+            className="mt-6 w-full rounded-full bg-black px-6 py-3 text-base font-bold text-white transition hover:bg-gray-800 disabled:opacity-50"
+          >
+            {loading ? '결제 준비 중...' : '1,500원 결제하고 전체 보기'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function formatSeconds(ms: number | null, approx: boolean) {
   if (ms == null) return '-';
   const seconds = Math.round(ms / 1000);
@@ -411,6 +489,13 @@ export default function EvaluationPanel({
         </div>
       </section>
 
+      {!evaluation.paid && (
+        <div id="section-3">
+          <ReportPaywall projectId={projectId} />
+        </div>
+      )}
+      {evaluation.paid && (
+      <>
       <section>
         <SectionHeader id="section-3" index={3} title="주요 작업 분석" subtitle="Case Studies" />
         <div className="grid grid-cols-1 gap-4">
@@ -509,6 +594,8 @@ export default function EvaluationPanel({
         </div>
         <AnalysisBlock title="총평" text={evaluation.consultSummary} />
       </section>
+      </>
+      )}
     </div>
   );
 }

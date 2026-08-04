@@ -35,5 +35,8 @@ ai:
   service:
     url: ${AI_SERVICE_URL:http://localhost:8000}
 
+toss:
+  secret-key: ${TOSS_SECRET_KEY:test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R}
+
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}

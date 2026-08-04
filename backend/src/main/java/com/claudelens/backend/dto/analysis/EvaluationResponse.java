@@ -16,6 +16,7 @@ import java.util.UUID;
 @Builder
 public class EvaluationResponse {
     private UUID id;
+    private boolean paid;
     private String maturityLevel;
     private String grade;
     private LocalDateTime evaluatedAt;
@@ -42,17 +43,19 @@ public class EvaluationResponse {
             "Level 1 (입문)", "Level 2 (초급)", "Level 3 (중급)", "Level 4 (고급)", "Level 5 (마스터)"
     };
 
-    public static EvaluationResponse from(Evaluation e, List<Recommendation> recommendations) {
+    // 개발 활동 요약(section 1)/핵심 결론(section 2)은 결제 여부와 무관하게 항상 내려주고,
+    // 그 아래(주요 작업 분석~AI 컨설트 총평)는 결제 전이면 서버에서부터 내려주지 않는다.
+    // (프론트에서 블러만 씌우면 DOM 검사로 원문이 그대로 보여서 실효성이 없음)
+    public static EvaluationResponse from(Evaluation e, List<Recommendation> recommendations, boolean paid) {
         double consultTotal = (e.getConsultCategories() == null)
                 ? 0
                 : e.getConsultCategories().stream()
                         .mapToDouble(c -> c.getScore() != null ? c.getScore() : 0)
                         .sum();
 
-        return EvaluationResponse.builder()
+        EvaluationResponse.EvaluationResponseBuilder builder = EvaluationResponse.builder()
                 .id(e.getId())
-                .maturityLevel(e.getMaturityLevel())
-                .grade(e.getGrade())
+                .paid(paid)
                 .evaluatedAt(e.getEvaluatedAt())
                 .recommendations(recommendations.stream().map(RecommendationResponse::from).toList())
                 .commitCount(e.getCommitCount())
@@ -60,8 +63,16 @@ public class EvaluationResponse {
                 .avgResponseTimeMs(e.getAvgResponseTimeMs())
                 .medianResponseTimeMs(e.getMedianResponseTimeMs())
                 .activitySummary(e.getActivitySummary())
+                .keyConclusions(e.getKeyConclusions());
+
+        if (!paid) {
+            return builder.build();
+        }
+
+        return builder
+                .maturityLevel(e.getMaturityLevel())
+                .grade(e.getGrade())
                 .agentUsageAnalysis(e.getAgentUsageAnalysis())
-                .keyConclusions(e.getKeyConclusions())
                 .caseStudies(e.getCaseStudies())
                 .strengths(e.getStrengths())
                 .weaknesses(e.getWeaknesses())

@@ -120,10 +120,8 @@ export interface ConsultCategory {
   improvementNote: string;
 }
 
-export interface Evaluation {
+interface EvaluationBase {
   id: string;
-  maturityLevel: string;
-  grade: string;
   evaluatedAt: string;
   recommendations: Recommendation[];
   commitCount: number | null;
@@ -131,18 +129,29 @@ export interface Evaluation {
   avgResponseTimeMs: number | null;
   medianResponseTimeMs: number | null;
   activitySummary: string;
-  agentUsageAnalysis: string;
   keyConclusions: string[];
-  caseStudies: CaseStudy[];
-  strengths: string[];
-  weaknesses: string[];
-  interactionPatterns: InteractionPattern[];
-  patternAnalysis: string;
-  consultCategories: ConsultCategory[];
-  consultSummary: string;
-  consultTotalScore: number;
-  consultLevel: string;
 }
+
+// 결제 전에는 3~7번 섹션에 해당하는 필드를 서버가 아예 내려주지 않는다.
+// paid로 분기되는 판별 유니언이라 `if (evaluation.paid)` 안에서는 아래 필드들이
+// null 걱정 없이 그대로 좁혀진다.
+export type Evaluation =
+  | (EvaluationBase & { paid: false })
+  | (EvaluationBase & {
+      paid: true;
+      maturityLevel: string;
+      grade: string;
+      agentUsageAnalysis: string;
+      caseStudies: CaseStudy[];
+      strengths: string[];
+      weaknesses: string[];
+      interactionPatterns: InteractionPattern[];
+      patternAnalysis: string;
+      consultCategories: ConsultCategory[];
+      consultSummary: string;
+      consultTotalScore: number;
+      consultLevel: string;
+    });
 
 export function getEvaluation(projectId: string) {
   return request<Evaluation>(`/api/v1/projects/${projectId}/evaluation`);
@@ -162,4 +171,26 @@ export interface AnalysisProgress {
 
 export function getAnalysisProgress(projectId: string) {
   return request<AnalysisProgress>(`/api/v1/projects/${projectId}/analyze/status`);
+}
+
+export interface PaymentPrepareResult {
+  orderId: string;
+  amount: number;
+  orderName: string;
+}
+
+export function preparePayment(projectId: string) {
+  return request<PaymentPrepareResult>(`/api/v1/projects/${projectId}/payment/prepare`, {
+    method: 'POST',
+  });
+}
+
+export function confirmPayment(
+  projectId: string,
+  input: { orderId: string; paymentKey: string; amount: number },
+) {
+  return request<void>(`/api/v1/projects/${projectId}/payment/confirm`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
 }
