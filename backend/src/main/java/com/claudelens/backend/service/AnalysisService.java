@@ -190,6 +190,15 @@ public class AnalysisService {
                         .build())
                 .toList());
         evaluation.setPatternAnalysis(deepAnalysis.getPatternAnalysis());
+        evaluation.setRiskFlags(deepAnalysis.getRiskFlags() == null
+                ? List.of()
+                : deepAnalysis.getRiskFlags().stream()
+                        .map(r -> RiskFlagItem.builder()
+                                .title(r.getTitle())
+                                .description(r.getDescription())
+                                .evidence(r.getEvidence())
+                                .build())
+                        .toList());
         evaluation.setEvaluatedAt(LocalDateTime.now());
 
         int commitCount = taskRepository.findByProjectId(project.getId()).stream()

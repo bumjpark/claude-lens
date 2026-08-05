@@ -5,6 +5,7 @@ import com.claudelens.backend.domain.ConsultCategoryItem;
 import com.claudelens.backend.domain.Evaluation;
 import com.claudelens.backend.domain.InteractionPatternItem;
 import com.claudelens.backend.domain.Recommendation;
+import com.claudelens.backend.domain.RiskFlagItem;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -33,6 +34,7 @@ public class EvaluationResponse {
     private List<String> weaknesses;
     private List<InteractionPatternItem> interactionPatterns;
     private String patternAnalysis;
+    private List<RiskFlagItem> riskFlags;
     private List<ConsultCategoryItem> consultCategories;
     private String consultSummary;
     private Double consultTotalScore;
@@ -105,6 +107,9 @@ public class EvaluationResponse {
                 .weaknesses(e.getWeaknesses())
                 .interactionPatterns(e.getInteractionPatterns())
                 .patternAnalysis(e.getPatternAnalysis())
+                // 이 필드가 추가되기 전에 분석된 기존 행은 컬럼이 NULL이라, 재분석 전까지는
+                // 빈 리스트로 내려줘야 프론트에서 null.length로 죽지 않는다.
+                .riskFlags(e.getRiskFlags() != null ? e.getRiskFlags() : List.of())
                 .consultCategories(e.getConsultCategories())
                 .consultSummary(e.getConsultSummary())
                 .consultTotalScore(consultTotal)
