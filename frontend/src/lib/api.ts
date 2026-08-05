@@ -117,6 +117,12 @@ export interface InteractionPattern {
   description: string;
 }
 
+export interface RiskFlag {
+  title: string;
+  description: string;
+  evidence: string;
+}
+
 export interface ConsultCategory {
   category: string;
   score: number;
@@ -156,6 +162,7 @@ export type Evaluation =
       weaknesses: string[];
       interactionPatterns: InteractionPattern[];
       patternAnalysis: string;
+      riskFlags: RiskFlag[];
       consultCategories: ConsultCategory[];
       consultSummary: string;
       consultTotalScore: number;

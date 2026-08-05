@@ -62,6 +62,12 @@ class InteractionPattern(BaseModel):
     description: str = Field(description="패턴 설명, 실제 근거 인용 포함")
 
 
+class RiskFlag(BaseModel):
+    title: str = Field(description="위험 신호 제목")
+    description: str = Field(description="무엇이 왜 위험한지에 대한 설명")
+    evidence: str = Field(description="근거가 된 커밋 메시지/프롬프트 인용")
+
+
 # --- 2단계: 심층 분석 (evaluations 테이블과 매핑) ---
 class DeepAnalysisResult(BaseModel):
     key_conclusions: list[str] = Field(description="핵심 결론 1~2개")
@@ -71,6 +77,10 @@ class DeepAnalysisResult(BaseModel):
     interaction_patterns: list[InteractionPattern] = Field(description="주요 상호작용 패턴 목록")
     pattern_analysis: str = Field(description="위 패턴들을 종합한 분석 서술")
     task_flow_analysis: str = Field(description="작업 시도 흐름 및 반복 패턴 분석")
+    risk_flags: list[RiskFlag] = Field(
+        default_factory=list,
+        description="검증 없이 커밋된 것으로 보이는 위험 신호 목록 (커밋 이력 없으면 빈 리스트)",
+    )
 
 
 # --- 3단계: AI Agent 활용 평가 + 컨설트 총평 (evaluations 테이블과 매핑) ---
