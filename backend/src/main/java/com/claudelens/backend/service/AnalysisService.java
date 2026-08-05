@@ -53,7 +53,7 @@ public class AnalysisService {
         Evaluation evaluation = saveEvaluation(project, aiResponse, logs);
         List<Recommendation> recommendations = saveRecommendations(evaluation, aiResponse.getRecommendations());
 
-        return EvaluationResponse.from(evaluation, recommendations, isPaid(projectId));
+        return buildResponse(evaluation, recommendations, projectId);
     }
 
     @Transactional(readOnly = true)
@@ -78,11 +78,57 @@ public class AnalysisService {
         List<Recommendation> recommendations =
                 recommendationRepository.findByEvaluationIdOrderByOrderIndex(evaluation.getId());
 
-        return EvaluationResponse.from(evaluation, recommendations, isPaid(projectId));
+        return buildResponse(evaluation, recommendations, projectId);
     }
 
     private boolean isPaid(UUID projectId) {
         return paymentRepository.existsByProjectIdAndStatus(projectId, PaymentStatus.PAID);
+    }
+
+    // 재요청 때문에 추가로 걸린 시간과, 다른 사용자들 대비 백분위를 계산해서 응답에 얹는다.
+    // 둘 다 DB 전체를 훑어야 해서(재요청 카운트는 Mongo, 백분위는 전체 Evaluation) 이 클래스
+    // 안에서 계산해서 EvaluationResponse.from()에는 계산된 값만 넘긴다.
+    private EvaluationResponse buildResponse(Evaluation evaluation, List<Recommendation> recommendations, UUID projectId) {
+        long retryCount = interactionLogRepository.countByProjectIdAndIsRetryTrue(projectId);
+        Integer avgResponseTimeMs = evaluation.getAvgResponseTimeMs();
+        Integer estimatedWastedMinutes = avgResponseTimeMs == null
+                ? null
+                : (int) Math.round(retryCount * avgResponseTimeMs / 60000.0);
+
+        PeerStats peerStats = computePeerStats(evaluation);
+
+        return EvaluationResponse.from(
+                evaluation,
+                recommendations,
+                isPaid(projectId),
+                (int) retryCount,
+                estimatedWastedMinutes,
+                peerStats.percentile(),
+                peerStats.peerCount());
+    }
+
+    // 비교 대상(전체 평가 건수)이 너무 적으면 백분위가 의미 없어서 null로 둔다 — 서비스 초기라
+    // 실사용자가 몇 명 안 될 때 "상위 90%" 같은 왜곡된 숫자를 보여주지 않기 위함.
+    private static final int MIN_PEERS_FOR_PERCENTILE = 5;
+
+    private record PeerStats(Integer percentile, int peerCount) {}
+
+    private PeerStats computePeerStats(Evaluation current) {
+        List<Evaluation> all = evaluationRepository.findAll();
+        int peerCount = all.size();
+        if (peerCount < MIN_PEERS_FOR_PERCENTILE) {
+            return new PeerStats(null, peerCount);
+        }
+
+        double myTotal = EvaluationResponse.computeConsultTotal(current);
+        long scoredBelowMe = all.stream()
+                .filter(e -> !e.getId().equals(current.getId()))
+                .mapToDouble(EvaluationResponse::computeConsultTotal)
+                .filter(total -> total < myTotal)
+                .count();
+        double percentileRank = 100.0 * scoredBelowMe / (peerCount - 1); // 나보다 낮은 사람 비율
+        int topPercent = (int) Math.round(100 - percentileRank); // "상위 N%"로 바로 쓸 수 있는 값
+        return new PeerStats(topPercent, peerCount);
     }
 
     // 재분석 시 이전 결과를 지우고 새로 채운다 (누적이 아니라 최신 분석으로 대체)

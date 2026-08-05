@@ -1,5 +1,17 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Activity, Award, Check, CheckCircle2, Clock, Layers, Loader2, Lock, TrendingUp, Zap } from 'lucide-react';
+import {
+  Activity,
+  Award,
+  Check,
+  CheckCircle2,
+  Clock,
+  Layers,
+  Loader2,
+  Lock,
+  RotateCcw,
+  TrendingUp,
+  Zap,
+} from 'lucide-react';
 import {
   ApiError,
   getAnalysisProgress,
@@ -142,6 +154,38 @@ function StatCard({
       <p className="text-lg text-gray-500">{label}</p>
       <p className="mt-1 text-4xl font-bold text-gray-900">{value}</p>
       <p className="mt-1.5 text-base text-gray-400">{caption}</p>
+    </div>
+  );
+}
+
+// 값 하나를 전체 분포 안에서 보여주는 단일 지표라 범례 없이 막대 하나로 충분하다.
+// 비교 대상이 너무 적을 땐(현재 5명 미만) 왜곡된 숫자 대신 안내 문구로 대체한다.
+function PeerPercentileBar({ percentile, peerCount }: { percentile: number | null; peerCount: number }) {
+  if (percentile === null) {
+    return (
+      <div className="rounded-3xl border border-gray-200 bg-white p-6">
+        <h3 className="text-lg font-bold text-gray-900">또래 비교</h3>
+        <p className="mt-1 text-base text-gray-500">
+          아직 비교할 사용자가 충분하지 않아요 (현재 {peerCount}명). 더 많은 분석이 쌓이면 표시됩니다.
+        </p>
+      </div>
+    );
+  }
+
+  const outperform = Math.min(100, Math.max(0, 100 - percentile));
+
+  return (
+    <div className="rounded-3xl border border-gray-200 bg-white p-6">
+      <div className="mb-3 flex items-baseline justify-between">
+        <h3 className="text-lg font-bold text-gray-900">또래 비교</h3>
+        <span className="text-3xl font-bold text-gray-900">상위 {percentile}%</span>
+      </div>
+      <div className="h-3 w-full overflow-hidden rounded-full bg-gray-100">
+        <div className="h-3 rounded-full bg-black" style={{ width: `${outperform}%` }} />
+      </div>
+      <p className="mt-2 text-sm text-gray-400">
+        전체 {peerCount}명 중 {outperform}%보다 높은 컨설트 점수예요
+      </p>
     </div>
   );
 }
@@ -416,7 +460,7 @@ export default function EvaluationPanel({
       <section>
         <SectionHeader id="section-1" index={1} title="개발 활동 요약" subtitle="Quantitative Overview" />
         <h3 className="mb-4 text-xl font-semibold text-gray-900">데이터 스냅샷 (정량)</h3>
-        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             tinted
             icon={<Activity className="h-6 w-6 text-purple-600" />}
@@ -439,14 +483,24 @@ export default function EvaluationPanel({
             value={formatSeconds(evaluation.medianResponseTimeMs, false)}
             caption="요청당 중앙값 응답 시간"
           />
+          <StatCard
+            icon={<RotateCcw className="h-6 w-6 text-red-500" />}
+            iconClass="bg-red-100"
+            label="재요청 손실 시간"
+            value={
+              evaluation.estimatedWastedMinutes != null ? `약 ${evaluation.estimatedWastedMinutes}분` : '-'
+            }
+            caption={`재요청 ${evaluation.retryCount ?? 0}건 기준 추정`}
+          />
         </div>
-        <div className="rounded-3xl border border-gray-200 bg-gray-50 p-6">
+        <div className="mb-6 rounded-3xl border border-gray-200 bg-gray-50 p-6">
           <div className="mb-2 flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-gray-900" />
             <h3 className="text-xl font-bold text-gray-900">해석 (요약)</h3>
           </div>
           <p className="text-lg leading-relaxed text-gray-700">{evaluation.activitySummary}</p>
         </div>
+        <PeerPercentileBar percentile={evaluation.peerPercentile} peerCount={evaluation.peerCount} />
       </section>
 
       <section>

@@ -134,6 +134,11 @@ interface EvaluationBase {
   medianResponseTimeMs: number | null;
   activitySummary: string;
   keyConclusions: string[];
+  retryCount: number | null;
+  estimatedWastedMinutes: number | null;
+  // 비교 대상 사용자가 너무 적으면(현재 5명 미만) null — "상위 N%"를 표시할 수 없다는 뜻
+  peerPercentile: number | null;
+  peerCount: number;
 }
 
 // 결제 전에는 3~7번 섹션에 해당하는 필드를 서버가 아예 내려주지 않는다.
