@@ -23,6 +23,7 @@ def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
         user_role=request.user_role,
         user_experience_level=request.user_experience_level,
         interactions=request.interactions,
+        commits=request.commits,
     )
     final_state = pipeline.invoke(initial_state)
     progress.set_done(request.project_id)

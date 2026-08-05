@@ -1,10 +1,12 @@
 package com.claudelens.backend.client;
 
+import com.claudelens.backend.domain.GitCommitLog;
 import com.claudelens.backend.domain.InteractionLog;
 import com.claudelens.backend.domain.User;
 import com.claudelens.backend.dto.ai.AiAnalysisProgress;
 import com.claudelens.backend.dto.ai.AiAnalyzeRequest;
 import com.claudelens.backend.dto.ai.AiAnalyzeResponse;
+import com.claudelens.backend.dto.ai.AiCommitDto;
 import com.claudelens.backend.dto.ai.AiInteractionDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -36,12 +38,13 @@ public class AiAnalysisClient {
                 .build();
     }
 
-    public AiAnalyzeResponse analyze(UUID projectId, List<InteractionLog> logs, User user) {
+    public AiAnalyzeResponse analyze(UUID projectId, List<InteractionLog> logs, List<GitCommitLog> commits, User user) {
         AiAnalyzeRequest request = new AiAnalyzeRequest(
                 projectId.toString(),
                 user.getRole(),
                 user.getExperienceLevel(),
-                logs.stream().map(this::toDto).toList());
+                logs.stream().map(this::toDto).toList(),
+                commits.stream().map(this::toCommitDto).toList());
 
         return restClient.post()
                 .uri("/analyze")
@@ -68,5 +71,12 @@ public class AiAnalysisClient {
                 Boolean.TRUE.equals(log.getIsErrorRequest()),
                 Boolean.TRUE.equals(log.getIsReviewRequest()),
                 Boolean.TRUE.equals(log.getIsDesignRequest()));
+    }
+
+    private AiCommitDto toCommitDto(GitCommitLog commit) {
+        return new AiCommitDto(
+                commit.getMessage(),
+                commit.getFilesChanged(),
+                commit.getCommittedAt() != null ? commit.getCommittedAt().toString() : null);
     }
 }

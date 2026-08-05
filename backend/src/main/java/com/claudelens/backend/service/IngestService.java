@@ -1,15 +1,20 @@
 package com.claudelens.backend.service;
 
+import com.claudelens.backend.domain.GitCommitLog;
 import com.claudelens.backend.domain.InteractionLog;
+import com.claudelens.backend.dto.ingest.GitCommitLogBatchRequest;
+import com.claudelens.backend.dto.ingest.GitCommitLogRequest;
 import com.claudelens.backend.dto.ingest.IngestStatusResponse;
 import com.claudelens.backend.dto.ingest.InteractionLogBatchRequest;
 import com.claudelens.backend.dto.ingest.InteractionLogRequest;
+import com.claudelens.backend.repository.GitCommitLogRepository;
 import com.claudelens.backend.repository.InteractionLogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -18,6 +23,7 @@ import java.util.stream.Collectors;
 public class IngestService {
 
     private final InteractionLogRepository interactionLogRepository;
+    private final GitCommitLogRepository gitCommitLogRepository;
 
     // 단건 저장
     public void saveInteractionLog(InteractionLogRequest request) {
@@ -31,6 +37,32 @@ public class IngestService {
                 .map(this::buildLog)
                 .collect(Collectors.toList());
         interactionLogRepository.saveAll(logs);
+    }
+
+    // 커밋 이력 일괄 저장 — 커밋 해시는 안정적인 고유 식별자라, 프롬프트 로그와 달리
+    // 이미 저장된 해시는 걸러내고 새 커밋만 넣는다 (동기화 커서 경계가 겹쳐도 중복 저장 방지).
+    public void saveGitCommitLogBatch(GitCommitLogBatchRequest request) {
+        List<GitCommitLogRequest> incoming = request.getCommits();
+        if (incoming.isEmpty()) return;
+
+        UUID projectId = incoming.get(0).getProjectId();
+        List<String> hashes = incoming.stream().map(GitCommitLogRequest::getCommitHash).toList();
+        Set<String> existingHashes = gitCommitLogRepository.findByProjectIdAndCommitHashIn(projectId, hashes)
+                .stream()
+                .map(GitCommitLog::getCommitHash)
+                .collect(Collectors.toSet());
+
+        List<GitCommitLog> logs = incoming.stream()
+                .filter(c -> !existingHashes.contains(c.getCommitHash()))
+                .map(c -> GitCommitLog.builder()
+                        .projectId(c.getProjectId())
+                        .commitHash(c.getCommitHash())
+                        .message(c.getMessage())
+                        .filesChanged(c.getFilesChanged())
+                        .committedAt(c.getCommittedAt() != null ? c.getCommittedAt() : LocalDateTime.now())
+                        .build())
+                .toList();
+        gitCommitLogRepository.saveAll(logs);
     }
 
     // 수집 현황 조회

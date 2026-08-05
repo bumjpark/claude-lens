@@ -556,9 +556,7 @@ export default function EvaluationPanel({
           {evaluation.caseStudies.map((c, i) => (
             <div key={i} className="rounded-3xl border border-gray-200 bg-white p-6">
               <h3 className="mb-3 text-xl font-semibold text-gray-900">{c.title}</h3>
-              <p className="mb-2 text-base text-gray-500">
-                <span className="font-medium text-gray-700">구조적 문제:</span> {c.structuralIssue}
-              </p>
+              <p className="mb-2 text-base text-gray-500">{c.structuralIssue}</p>
               <p className="mb-3 text-lg text-gray-600">{c.interpretation}</p>
               <p className="border-l-2 border-gray-200 pl-3 text-base italic text-gray-500">「{c.evidence}」</p>
             </div>

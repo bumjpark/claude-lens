@@ -14,11 +14,18 @@ class Interaction(BaseModel):
     is_design_request: bool = False
 
 
+class Commit(BaseModel):
+    message: str
+    files_changed: list[str] = Field(default_factory=list)
+    committed_at: Optional[str] = None
+
+
 class AnalyzeRequest(BaseModel):
     project_id: str
     user_role: str
     user_experience_level: str
     interactions: list[Interaction]
+    commits: list[Commit] = Field(default_factory=list)
 
 
 # --- 1단계: 프롬프트 품질 분석 (prompt_analyses 테이블과 매핑) ---
@@ -38,10 +45,16 @@ class PromptQualityBatch(BaseModel):
 
 
 class CaseStudy(BaseModel):
-    title: str = Field(description="사례 제목")
-    structural_issue: str = Field(description="이 사례에서 드러난 구조적 문제")
-    interpretation: str = Field(description="그 문제가 의미하는 바에 대한 해석")
-    evidence: str = Field(description="근거가 된 실제 프롬프트/응답 발췌")
+    title: str = Field(description="사례 제목 (커밋 이력이 있으면 작업/기능 단위 이름)")
+    structural_issue: str = Field(
+        description="이 사례의 핵심 요약 — 커밋 이력이 있으면 무엇을 구현/작업했는지, "
+        "없으면 상호작용에서 드러난 구조적 문제"
+    )
+    interpretation: str = Field(
+        description="커밋 이력이 있으면 어떻게 구현했는지(관련 커밋과 AI 상호작용을 연결한 "
+        "과정), 없으면 그 문제가 의미하는 바에 대한 해석"
+    )
+    evidence: str = Field(description="근거가 된 실제 프롬프트/응답 발췌, 관련 커밋 메시지가 있으면 함께 인용")
 
 
 class InteractionPattern(BaseModel):
@@ -111,6 +124,7 @@ class PipelineState(BaseModel):
     user_role: str
     user_experience_level: str
     interactions: list[Interaction]
+    commits: list[Commit] = Field(default_factory=list)
     prompt_analyses: Optional[list[PromptQualityResult]] = None
     deep_analysis: Optional[DeepAnalysisResult] = None
     consult_review: Optional[ConsultReviewResult] = None

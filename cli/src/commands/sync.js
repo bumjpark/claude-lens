@@ -1,6 +1,7 @@
 import { loadConfig, saveConfig } from '../config.js';
 import { findSessionFiles, parseSessionFile } from '../parser.js';
-import { uploadBatch } from '../api.js';
+import { uploadBatch, uploadCommitBatch } from '../api.js';
+import { isGitRepo, getCommits } from '../git.js';
 
 const CHUNK_SIZE = 50;
 
@@ -12,6 +13,32 @@ function chunk(array, size) {
   return chunks;
 }
 
+// 실제 커밋 이력을 AI 분석의 근거로 쓰기 위해 git log를 동기화한다.
+// git 저장소가 아니거나 새 커밋이 없으면 조용히 건너뛴다.
+async function syncCommits(config) {
+  if (!isGitRepo()) return;
+
+  const commits = getCommits(process.cwd(), config.commitSyncedAt);
+  if (commits.length === 0) return;
+
+  const commitLogs = commits.map((c) => ({
+    projectId: config.projectId,
+    commitHash: c.hash,
+    message: c.message,
+    committedAt: c.committedAt,
+    filesChanged: c.filesChanged,
+  }));
+
+  for (const batch of chunk(commitLogs, CHUNK_SIZE)) {
+    await uploadCommitBatch(config.baseUrl, config.apiKey, batch);
+  }
+
+  // git log는 최신 커밋이 먼저 나오므로 첫 항목의 시각을 다음 커서로 쓴다.
+  config.commitSyncedAt = commits[0].committedAt;
+  saveConfig(config);
+  console.log(`커밋 ${commits.length}건 업로드.`);
+}
+
 export async function syncCommand() {
   const config = loadConfig();
   if (!config) {
@@ -19,6 +46,8 @@ export async function syncCommand() {
     process.exitCode = 1;
     return;
   }
+
+  await syncCommits(config);
 
   const files = findSessionFiles();
   if (files.length === 0) {
