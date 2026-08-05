@@ -28,6 +28,7 @@ public class AnalysisService {
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
     private final InteractionLogRepository interactionLogRepository;
+    private final GitCommitLogRepository gitCommitLogRepository;
     private final PromptAnalysisRepository promptAnalysisRepository;
     private final EvaluationRepository evaluationRepository;
     private final RecommendationRepository recommendationRepository;
@@ -46,8 +47,9 @@ public class AnalysisService {
         if (logs.isEmpty()) {
             throw new IllegalArgumentException("분석할 대화 로그가 없습니다");
         }
+        List<GitCommitLog> commits = gitCommitLogRepository.findByProjectId(projectId);
 
-        AiAnalyzeResponse aiResponse = aiAnalysisClient.analyze(projectId, logs, user);
+        AiAnalyzeResponse aiResponse = aiAnalysisClient.analyze(projectId, logs, commits, user);
 
         savePromptAnalyses(project, aiResponse.getPromptAnalyses());
         Evaluation evaluation = saveEvaluation(project, aiResponse, logs);

@@ -26,3 +26,15 @@ export async function uploadBatch(baseUrl, apiKey, logs) {
   });
   if (!res.ok) throw new Error(`업로드 실패 (${res.status}): ${await parseErrorBody(res)}`);
 }
+
+export async function uploadCommitBatch(baseUrl, apiKey, commits) {
+  const res = await fetch(`${baseUrl}/api/v1/ingest/commit/batch`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': apiKey,
+    },
+    body: JSON.stringify({ commits }),
+  });
+  if (!res.ok) throw new Error(`커밋 업로드 실패 (${res.status}): ${await parseErrorBody(res)}`);
+}

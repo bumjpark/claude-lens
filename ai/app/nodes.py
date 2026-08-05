@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 
 from langchain_core.exceptions import OutputParserException
 from langchain_openai import ChatOpenAI
@@ -109,10 +110,34 @@ def format_evidence_digest(prompt_analyses) -> str:
     return "\n".join(f"- {qa.log_id}: {qa.evidence}" for qa in prompt_analyses)
 
 
+# 커밋 메시지 앞의 "feat:", "fix(scope):" 같은 conventional commit 접두어는 개발자
+# 내부 관례라 리포트에는 노출할 필요가 없어서 LLM에 넘기기 전에 제거한다.
+_CONVENTIONAL_COMMIT_PREFIX = re.compile(
+    r"^(feat|fix|chore|docs|refactor|test|style|perf|build|ci|revert)(\([^)]*\))?!?:\s*",
+    re.IGNORECASE,
+)
+
+
+def strip_commit_prefix(message: str) -> str:
+    return _CONVENTIONAL_COMMIT_PREFIX.sub("", message).strip()
+
+
+def format_commits(commits) -> str:
+    if not commits:
+        return "(수집된 커밋 이력 없음)"
+    lines = []
+    for c in commits:
+        files = ", ".join(c.files_changed[:10]) if c.files_changed else "(변경 파일 정보 없음)"
+        message = strip_commit_prefix(c.message)
+        lines.append(f"- [{c.committed_at}] {message} (변경 파일: {files})")
+    return "\n".join(lines)
+
+
 def deep_analysis_node(state: PipelineState) -> dict:
     set_stage(state.project_id, 2)
     llm = _llm(DeepAnalysisResult)
     quality_summary = format_quality_summary(state.prompt_analyses)
+    commit_summary = format_commits(state.commits)
     result: DeepAnalysisResult = _invoke_with_retry(
         llm,
         [
@@ -121,6 +146,7 @@ def deep_analysis_node(state: PipelineState) -> dict:
                 content=(
                     f"[사용자 정보] 역할: {state.user_role}, 연차: {state.user_experience_level}\n\n"
                     f"[행동 패턴 통계]\n{compute_behavior_stats(state.interactions)}\n\n"
+                    f"[실제 Git 커밋 이력 (시간 순, 최신이 위)]\n{commit_summary}\n\n"
                     f"[1단계 프롬프트 품질 분석 결과 (시간 순)]\n{quality_summary}"
                 )
             ),
