@@ -75,6 +75,7 @@ def prompt_quality_node(state: PipelineState) -> dict:
 
     for start in range(0, len(interactions), PROMPT_QUALITY_CHUNK_SIZE):
         chunk = interactions[start : start + PROMPT_QUALITY_CHUNK_SIZE]
+        previous = interactions[start - 1] if start > 0 else None
         result: PromptQualityBatch = _invoke_with_retry(
             llm,
             [
@@ -84,7 +85,7 @@ def prompt_quality_node(state: PipelineState) -> dict:
                         f"다음은 한 개발자의 AI 상호작용 로그 {len(chunk)}건입니다. "
                         f"반드시 {len(chunk)}건 전부에 대해 하나씩 빠짐없이 평가해주세요. "
                         "log_id는 상호작용의 id를 그대로 쓰세요.\n\n"
-                        + format_interactions(chunk)
+                        + format_interactions(chunk, previous=previous)
                     )
                 ),
             ]
