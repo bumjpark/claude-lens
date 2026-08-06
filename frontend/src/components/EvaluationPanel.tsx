@@ -522,7 +522,7 @@ export default function EvaluationPanel({
             </div>
           ))}
         </div>
-        <h3 className="mb-3 text-xl font-semibold text-gray-900">개선 우선순위 Top 3</h3>
+        <h3 className="mb-3 text-xl font-semibold text-gray-900">개선 우선순위</h3>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {evaluation.recommendations.map((r, i) => (
             <div key={r.id} className="rounded-3xl border border-gray-200 bg-white p-6">
@@ -538,9 +538,11 @@ export default function EvaluationPanel({
                 </span>
               </div>
               <p className="mb-2 text-base text-gray-400">{r.category}</p>
-              <p className="mb-3 border-l-2 border-gray-200 pl-3 text-base italic text-gray-500">
-                「{r.evidence}」
-              </p>
+              {r.evidence && (
+                <p className="mb-3 border-l-2 border-gray-200 pl-3 text-base italic text-gray-500">
+                  「{r.evidence}」
+                </p>
+              )}
               <p className="mb-3 text-lg text-gray-600">{r.suggestion}</p>
               <div className="rounded-md bg-gray-50 p-4 text-base text-gray-700">
                 예시: {r.examplePrompt}
