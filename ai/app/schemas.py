@@ -123,6 +123,27 @@ class RecommendationBatch(BaseModel):
     recommendations: list[Recommendation]
 
 
+# --- 5단계: 리포트 편집 (중복 인용/빈 문단 정리, 새 사실 생성 금지) ---
+class EditedReport(BaseModel):
+    key_conclusions: list[str] = Field(description="정리된 핵심 결론 (최소 2개 유지)")
+    case_studies: list[CaseStudy] = Field(description="정리된 주요 작업 분석 사례")
+    strengths: list[str]
+    weaknesses: list[str]
+    interaction_patterns: list[InteractionPattern]
+    pattern_analysis: str
+    task_flow_analysis: str
+    risk_flags: list[RiskFlag] = Field(default_factory=list)
+    agent_usage_analysis: str
+    consult_categories: list[ConsultCategoryResult] = Field(
+        description="5개 항목, category 값과 순서·score는 원본과 동일하게 유지, "
+        "positive_note/improvement_note만 중복 제거 목적으로 수정 가능"
+    )
+    consult_summary: str
+    recommendations: list[Recommendation] = Field(
+        description="category/priority는 원본 유지, problem/evidence/suggestion/example_prompt만 수정 가능"
+    )
+
+
 class AnalyzeResponse(BaseModel):
     prompt_analyses: list[PromptQualityResult]
     deep_analysis: DeepAnalysisResult

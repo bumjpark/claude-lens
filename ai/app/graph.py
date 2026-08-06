@@ -5,6 +5,7 @@ from app.nodes import (
     deep_analysis_node,
     prompt_quality_node,
     recommendation_node,
+    report_editor_node,
 )
 from app.schemas import PipelineState
 
@@ -15,12 +16,14 @@ def build_graph():
     graph.add_node("run_deep_analysis", deep_analysis_node)
     graph.add_node("run_consult_review", consult_review_node)
     graph.add_node("generate_recommendations", recommendation_node)
+    graph.add_node("edit_report", report_editor_node)
 
     graph.add_edge(START, "analyze_prompt_quality")
     graph.add_edge("analyze_prompt_quality", "run_deep_analysis")
     graph.add_edge("run_deep_analysis", "run_consult_review")
     graph.add_edge("run_consult_review", "generate_recommendations")
-    graph.add_edge("generate_recommendations", END)
+    graph.add_edge("generate_recommendations", "edit_report")
+    graph.add_edge("edit_report", END)
 
     return graph.compile()
 

@@ -100,7 +100,11 @@ public class EvaluationResponse {
 
         return builder
                 .maturityLevel(e.getMaturityLevel())
-                .grade(e.getGrade())
+                // grade는 LLM이 자유롭게 고르면 총점(consultLevel)과 모순되는 조합이 나올 수
+                // 있어서(예: "C등급"인데 "Level 4 고급"), LLM 판단 대신 같은 총점 구간에서
+                // 결정적으로 계산한다 — grade와 Level이 항상 같은 근거(총점)에서 나오므로
+                // 구조적으로 모순이 생길 수 없다.
+                .grade(gradeFor(consultTotal))
                 .agentUsageAnalysis(e.getAgentUsageAnalysis())
                 .caseStudies(e.getCaseStudies())
                 .strengths(e.getStrengths())
@@ -122,5 +126,15 @@ public class EvaluationResponse {
             if (total <= LEVEL_THRESHOLDS[i]) return LEVEL_LABELS[i];
         }
         return LEVEL_LABELS[LEVEL_LABELS.length - 1];
+    }
+
+    // levelFor()와 동일한 구간(0~5점짜리 5개 항목 합산, 0~25점)을 써서 grade를 계산한다.
+    // Level과 grade가 항상 같은 임계값에서 나오도록 맞춰서 "C인데 고급" 같은 모순을 방지한다.
+    private static String gradeFor(double total) {
+        if (total <= LEVEL_THRESHOLDS[0]) return "F";
+        if (total <= LEVEL_THRESHOLDS[1]) return "D";
+        if (total <= LEVEL_THRESHOLDS[2]) return "C";
+        if (total <= LEVEL_THRESHOLDS[3]) return "B";
+        return "A";
     }
 }
