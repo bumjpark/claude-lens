@@ -91,22 +91,38 @@ public class IngestService {
                 .build();
     }
 
+    // "에러 없이 잘 됩니다"처럼 에러/오류를 부정하는 문구가 있으면 실제로는 에러 얘기가
+    // 아니므로, 이런 경우는 에러 관련 키워드가 있어도 에러 요청으로 보지 않는다.
+    private static final List<String> ERROR_NEGATION_PHRASES = List.of(
+            "에러 없이", "에러없이", "오류 없이", "오류없이",
+            "에러 없음", "오류 없음", "에러 없고", "오류 없고",
+            "에러가 아니", "오류가 아니", "에러는 아니", "오류는 아니"
+    );
+
+    private boolean mentionsErrorWithoutNegation(String text) {
+        boolean mentionsError = text.contains("에러") || text.contains("오류") ||
+                text.contains("error") || text.contains("exception");
+        if (!mentionsError) return false;
+        return ERROR_NEGATION_PHRASES.stream().noneMatch(text::contains);
+    }
+
     // InteractionLog 빌드 + 자동 분류
     private InteractionLog buildLog(InteractionLogRequest request) {
         String prompt = request.getPromptText().toLowerCase();
         String response = request.getResponseText().toLowerCase();
 
-        // 재요청 여부 감지
-        boolean isRetry = prompt.contains("다시") || prompt.contains("또") ||
-                prompt.contains("안 돼") || prompt.contains("안돼") ||
-                prompt.contains("에러") || prompt.contains("오류");
+        boolean isErrorRequest = mentionsErrorWithoutNegation(prompt);
+
+        // 재요청 여부 감지 — "또"는 "또한"처럼 재요청과 무관한 단어에도 흔히 섞여있고,
+        // 에러/오류 키워드는 isErrorRequest와 개념이 겹쳐서(에러를 "언급"한 것과 "다시
+        // 요청"한 것은 다름) 여기서는 제외하고 반복/실패를 직접 나타내는 표현만 본다.
+        boolean isRetry = prompt.contains("다시") ||
+                prompt.contains("안 돼") || prompt.contains("안돼") || prompt.contains("안됨") ||
+                prompt.contains("여전히") || prompt.contains("아직도");
 
         // 요청 유형 자동 분류
         boolean isCodeRequest = prompt.contains("코드") || prompt.contains("구현") ||
                 prompt.contains("작성") || response.contains("```");
-
-        boolean isErrorRequest = prompt.contains("에러") || prompt.contains("오류") ||
-                prompt.contains("error") || prompt.contains("exception");
 
         boolean isReviewRequest = prompt.contains("리뷰") || prompt.contains("검토") ||
                 prompt.contains("확인해") || prompt.contains("review");

@@ -32,4 +32,7 @@ public class AiInteractionDto {
 
     @JsonProperty("is_design_request")
     private boolean isDesignRequest;
+
+    @JsonProperty("requested_at")
+    private String requestedAt;
 }

@@ -12,6 +12,7 @@ class Interaction(BaseModel):
     is_error_request: bool = False
     is_review_request: bool = False
     is_design_request: bool = False
+    requested_at: Optional[str] = None
 
 
 class Commit(BaseModel):
