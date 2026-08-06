@@ -70,7 +70,8 @@ public class AiAnalysisClient {
                 Boolean.TRUE.equals(log.getIsCodeRequest()),
                 Boolean.TRUE.equals(log.getIsErrorRequest()),
                 Boolean.TRUE.equals(log.getIsReviewRequest()),
-                Boolean.TRUE.equals(log.getIsDesignRequest()));
+                Boolean.TRUE.equals(log.getIsDesignRequest()),
+                log.getRequestedAt() != null ? log.getRequestedAt().toString() : null);
     }
 
     private AiCommitDto toCommitDto(GitCommitLog commit) {

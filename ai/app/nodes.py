@@ -96,9 +96,13 @@ def prompt_quality_node(state: PipelineState) -> dict:
     return {"prompt_analyses": all_results}
 
 
-def format_quality_summary(prompt_analyses) -> str:
+# 상호작용 자체(state.interactions)에는 시각이 있지만 1단계 결과(PromptQualityResult)에는
+# 없어서, log_id로 다시 조인해서 커밋 시각과 비교 가능한 시각을 함께 보여준다.
+def format_quality_summary(prompt_analyses, interactions) -> str:
+    requested_at_by_id = {i.id: i.requested_at for i in interactions}
     return "\n".join(
-        f"- {qa.log_id} ({qa.prompt_type}): context={qa.context_score}, clarity={qa.clarity_score}, "
+        f"- {qa.log_id} ({qa.prompt_type}, 시각={requested_at_by_id.get(qa.log_id) or '알수없음'}): "
+        f"context={qa.context_score}, clarity={qa.clarity_score}, "
         f"constraint={qa.constraint_score}, goal={qa.goal_score}, 근거: {qa.evidence}"
         for qa in prompt_analyses
     )
@@ -136,7 +140,7 @@ def format_commits(commits) -> str:
 def deep_analysis_node(state: PipelineState) -> dict:
     set_stage(state.project_id, 2)
     llm = _llm(DeepAnalysisResult)
-    quality_summary = format_quality_summary(state.prompt_analyses)
+    quality_summary = format_quality_summary(state.prompt_analyses, state.interactions)
     commit_summary = format_commits(state.commits)
     result: DeepAnalysisResult = _invoke_with_retry(
         llm,
