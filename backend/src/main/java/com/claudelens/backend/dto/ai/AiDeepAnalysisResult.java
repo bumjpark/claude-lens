@@ -28,4 +28,7 @@ public class AiDeepAnalysisResult {
 
     @JsonProperty("task_flow_analysis")
     private String taskFlowAnalysis;
+
+    @JsonProperty("risk_flags")
+    private List<AiRiskFlag> riskFlags;
 }

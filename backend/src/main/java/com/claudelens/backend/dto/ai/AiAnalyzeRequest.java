@@ -19,4 +19,5 @@ public class AiAnalyzeRequest {
     private String userExperienceLevel;
 
     private List<AiInteractionDto> interactions;
+    private List<AiCommitDto> commits;
 }

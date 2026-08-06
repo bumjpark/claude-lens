@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   Activity,
+  AlertTriangle,
   Award,
   Check,
   CheckCircle2,
@@ -102,10 +103,11 @@ export const EVALUATION_SECTIONS = [
   { id: 'section-1', title: '개발 활동 요약' },
   { id: 'section-2', title: '핵심 결론' },
   { id: 'section-3', title: '주요 작업 분석' },
-  { id: 'section-4', title: '작업의 장점과 단점' },
-  { id: 'section-5', title: 'AI 상호작용 패턴 분석' },
-  { id: 'section-6', title: 'AI Agent 활용 평가' },
-  { id: 'section-7', title: 'AI 컨설트 총평' },
+  { id: 'section-4', title: '위험 신호' },
+  { id: 'section-5', title: '작업의 장점과 단점' },
+  { id: 'section-6', title: 'AI 상호작용 패턴 분석' },
+  { id: 'section-7', title: 'AI Agent 활용 평가' },
+  { id: 'section-8', title: 'AI 컨설트 총평' },
 ];
 
 const PRIORITY_LABEL: Record<string, string> = {
@@ -380,7 +382,12 @@ export default function EvaluationPanel({
   }, [projectId]);
 
   useEffect(() => {
-    if (evaluation) onSectionsReady?.(EVALUATION_SECTIONS);
+    if (!evaluation) return;
+    const hasRiskFlags = evaluation.paid && evaluation.riskFlags.length > 0;
+    const sections = hasRiskFlags
+      ? EVALUATION_SECTIONS
+      : EVALUATION_SECTIONS.filter((s) => s.id !== 'section-4');
+    onSectionsReady?.(sections);
   }, [evaluation, onSectionsReady]);
 
   async function handleAnalyze() {
@@ -556,9 +563,7 @@ export default function EvaluationPanel({
           {evaluation.caseStudies.map((c, i) => (
             <div key={i} className="rounded-3xl border border-gray-200 bg-white p-6">
               <h3 className="mb-3 text-xl font-semibold text-gray-900">{c.title}</h3>
-              <p className="mb-2 text-base text-gray-500">
-                <span className="font-medium text-gray-700">구조적 문제:</span> {c.structuralIssue}
-              </p>
+              <p className="mb-2 text-base text-gray-500">{c.structuralIssue}</p>
               <p className="mb-3 text-lg text-gray-600">{c.interpretation}</p>
               <p className="border-l-2 border-gray-200 pl-3 text-base italic text-gray-500">「{c.evidence}」</p>
             </div>
@@ -566,8 +571,26 @@ export default function EvaluationPanel({
         </div>
       </section>
 
+      {evaluation.riskFlags.length > 0 && (
       <section>
-        <SectionHeader id="section-4" index={4} title="작업의 장점과 단점" subtitle="Strengths & Weaknesses" />
+        <SectionHeader id="section-4" index={4} title="위험 신호" subtitle="Risk Flags" />
+        <div className="grid grid-cols-1 gap-4">
+          {evaluation.riskFlags.map((r, i) => (
+            <div key={i} className="flex gap-3 rounded-3xl border border-amber-200 bg-amber-50 p-6">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+              <div>
+                <h3 className="mb-2 text-xl font-semibold text-gray-900">{r.title}</h3>
+                <p className="mb-3 text-lg text-gray-600">{r.description}</p>
+                <p className="border-l-2 border-amber-300 pl-3 text-base italic text-gray-500">「{r.evidence}」</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+      )}
+
+      <section>
+        <SectionHeader id="section-5" index={5} title="작업의 장점과 단점" subtitle="Strengths & Weaknesses" />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="rounded-3xl border border-gray-200 bg-gray-50 p-6">
             <h3 className="mb-3 text-xl font-bold text-gray-900">강점</h3>
@@ -595,7 +618,7 @@ export default function EvaluationPanel({
       </section>
 
       <section>
-        <SectionHeader id="section-5" index={5} title="AI 상호작용 패턴 분석" subtitle="Interaction Patterns" />
+        <SectionHeader id="section-6" index={6} title="AI 상호작용 패턴 분석" subtitle="Interaction Patterns" />
         <div className="mb-4 flex flex-col gap-3">
           {evaluation.interactionPatterns.map((p, i) => (
             <div key={i} className="flex gap-3 rounded-3xl border border-gray-200 bg-white p-5">
@@ -611,7 +634,7 @@ export default function EvaluationPanel({
       </section>
 
       <section>
-        <SectionHeader id="section-6" index={6} title="AI Agent 활용 평가" subtitle="Agent Usage Evaluation" />
+        <SectionHeader id="section-7" index={7} title="AI Agent 활용 평가" subtitle="Agent Usage Evaluation" />
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
           <div className="flex flex-col justify-center gap-3 rounded-3xl bg-black p-8 text-white">
             <span className="w-fit rounded-md bg-white/20 px-4 py-1.5 text-4xl font-bold">
@@ -627,7 +650,7 @@ export default function EvaluationPanel({
       </section>
 
       <section>
-        <SectionHeader id="section-7" index={7} title="AI 컨설트 총평" subtitle="Consultant Review" />
+        <SectionHeader id="section-8" index={8} title="AI 컨설트 총평" subtitle="Consultant Review" />
         <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {evaluation.consultCategories.map((c) => (
             <ConsultCategoryCard

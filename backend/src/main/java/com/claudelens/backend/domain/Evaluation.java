@@ -76,6 +76,9 @@ public class Evaluation {
     @Column(name = "consult_summary")
     private String consultSummary;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    private List<RiskFlagItem> riskFlags;
+
     @PrePersist
     protected void onCreate() {
         evaluatedAt = LocalDateTime.now();

@@ -28,6 +28,7 @@ public class AnalysisService {
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
     private final InteractionLogRepository interactionLogRepository;
+    private final GitCommitLogRepository gitCommitLogRepository;
     private final PromptAnalysisRepository promptAnalysisRepository;
     private final EvaluationRepository evaluationRepository;
     private final RecommendationRepository recommendationRepository;
@@ -46,8 +47,9 @@ public class AnalysisService {
         if (logs.isEmpty()) {
             throw new IllegalArgumentException("분석할 대화 로그가 없습니다");
         }
+        List<GitCommitLog> commits = gitCommitLogRepository.findByProjectId(projectId);
 
-        AiAnalyzeResponse aiResponse = aiAnalysisClient.analyze(projectId, logs, user);
+        AiAnalyzeResponse aiResponse = aiAnalysisClient.analyze(projectId, logs, commits, user);
 
         savePromptAnalyses(project, aiResponse.getPromptAnalyses());
         Evaluation evaluation = saveEvaluation(project, aiResponse, logs);
@@ -188,6 +190,15 @@ public class AnalysisService {
                         .build())
                 .toList());
         evaluation.setPatternAnalysis(deepAnalysis.getPatternAnalysis());
+        evaluation.setRiskFlags(deepAnalysis.getRiskFlags() == null
+                ? List.of()
+                : deepAnalysis.getRiskFlags().stream()
+                        .map(r -> RiskFlagItem.builder()
+                                .title(r.getTitle())
+                                .description(r.getDescription())
+                                .evidence(r.getEvidence())
+                                .build())
+                        .toList());
         evaluation.setEvaluatedAt(LocalDateTime.now());
 
         int commitCount = taskRepository.findByProjectId(project.getId()).stream()

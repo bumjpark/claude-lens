@@ -14,11 +14,18 @@ class Interaction(BaseModel):
     is_design_request: bool = False
 
 
+class Commit(BaseModel):
+    message: str
+    files_changed: list[str] = Field(default_factory=list)
+    committed_at: Optional[str] = None
+
+
 class AnalyzeRequest(BaseModel):
     project_id: str
     user_role: str
     user_experience_level: str
     interactions: list[Interaction]
+    commits: list[Commit] = Field(default_factory=list)
 
 
 # --- 1단계: 프롬프트 품질 분석 (prompt_analyses 테이블과 매핑) ---
@@ -38,15 +45,27 @@ class PromptQualityBatch(BaseModel):
 
 
 class CaseStudy(BaseModel):
-    title: str = Field(description="사례 제목")
-    structural_issue: str = Field(description="이 사례에서 드러난 구조적 문제")
-    interpretation: str = Field(description="그 문제가 의미하는 바에 대한 해석")
-    evidence: str = Field(description="근거가 된 실제 프롬프트/응답 발췌")
+    title: str = Field(description="사례 제목 (커밋 이력이 있으면 작업/기능 단위 이름)")
+    structural_issue: str = Field(
+        description="이 사례의 핵심 요약 — 커밋 이력이 있으면 무엇을 구현/작업했는지, "
+        "없으면 상호작용에서 드러난 구조적 문제"
+    )
+    interpretation: str = Field(
+        description="커밋 이력이 있으면 어떻게 구현했는지(관련 커밋과 AI 상호작용을 연결한 "
+        "과정), 없으면 그 문제가 의미하는 바에 대한 해석"
+    )
+    evidence: str = Field(description="근거가 된 실제 프롬프트/응답 발췌, 관련 커밋 메시지가 있으면 함께 인용")
 
 
 class InteractionPattern(BaseModel):
     pattern_name: str = Field(description="패턴 이름 (예: 맥락 없는 재요청)")
     description: str = Field(description="패턴 설명, 실제 근거 인용 포함")
+
+
+class RiskFlag(BaseModel):
+    title: str = Field(description="위험 신호 제목")
+    description: str = Field(description="무엇이 왜 위험한지에 대한 설명")
+    evidence: str = Field(description="근거가 된 커밋 메시지/프롬프트 인용")
 
 
 # --- 2단계: 심층 분석 (evaluations 테이블과 매핑) ---
@@ -58,6 +77,10 @@ class DeepAnalysisResult(BaseModel):
     interaction_patterns: list[InteractionPattern] = Field(description="주요 상호작용 패턴 목록")
     pattern_analysis: str = Field(description="위 패턴들을 종합한 분석 서술")
     task_flow_analysis: str = Field(description="작업 시도 흐름 및 반복 패턴 분석")
+    risk_flags: list[RiskFlag] = Field(
+        default_factory=list,
+        description="검증 없이 커밋된 것으로 보이는 위험 신호 목록 (커밋 이력 없으면 빈 리스트)",
+    )
 
 
 # --- 3단계: AI Agent 활용 평가 + 컨설트 총평 (evaluations 테이블과 매핑) ---
@@ -111,6 +134,7 @@ class PipelineState(BaseModel):
     user_role: str
     user_experience_level: str
     interactions: list[Interaction]
+    commits: list[Commit] = Field(default_factory=list)
     prompt_analyses: Optional[list[PromptQualityResult]] = None
     deep_analysis: Optional[DeepAnalysisResult] = None
     consult_review: Optional[ConsultReviewResult] = None

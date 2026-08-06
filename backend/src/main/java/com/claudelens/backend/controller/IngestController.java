@@ -1,5 +1,6 @@
 package com.claudelens.backend.controller;
 
+import com.claudelens.backend.dto.ingest.GitCommitLogBatchRequest;
 import com.claudelens.backend.dto.ingest.IngestStatusResponse;
 import com.claudelens.backend.dto.ingest.InteractionLogBatchRequest;
 import com.claudelens.backend.dto.ingest.InteractionLogRequest;
@@ -37,6 +38,16 @@ public class IngestController {
             @Valid @RequestBody InteractionLogBatchRequest request) {
         request.getLogs().forEach(log -> requireOwnProject(httpRequest, log.getProjectId()));
         ingestService.saveInteractionLogBatch(request);
+        return ResponseEntity.ok().build();
+    }
+
+    // 커밋 이력 일괄 업로드
+    @PostMapping("/commit/batch")
+    public ResponseEntity<Void> saveGitCommitLogBatch(
+            HttpServletRequest httpRequest,
+            @Valid @RequestBody GitCommitLogBatchRequest request) {
+        request.getCommits().forEach(commit -> requireOwnProject(httpRequest, commit.getProjectId()));
+        ingestService.saveGitCommitLogBatch(request);
         return ResponseEntity.ok().build();
     }
 
