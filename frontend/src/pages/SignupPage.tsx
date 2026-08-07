@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { signup, ApiError } from '../lib/api';
 import { saveSession } from '../lib/auth';
+import UsageGuide from '../components/UsageGuide';
 
 export default function SignupPage() {
   const navigate = useNavigate();
@@ -29,8 +30,13 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f7f7f7] px-4 py-12">
-      <div className="w-full max-w-sm">
+    <div className="flex min-h-screen items-center justify-center bg-[#f7f7f7] px-4 py-16">
+      <div className="flex w-full max-w-4xl flex-col items-center gap-14 lg:flex-row lg:items-start lg:justify-between lg:gap-20">
+        <div className="hidden lg:block lg:pt-2">
+          <UsageGuide />
+        </div>
+
+        <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-black text-base font-bold text-white">
             CL
@@ -100,6 +106,11 @@ export default function SignupPage() {
             로그인
           </Link>
         </p>
+
+        <div className="mt-10 lg:hidden">
+          <UsageGuide />
+        </div>
+        </div>
       </div>
     </div>
   );
