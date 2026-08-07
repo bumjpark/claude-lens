@@ -178,6 +178,12 @@ export default function ProjectDetailPage() {
                 </div>
               </>
             )}
+
+            <ol className="mt-5 flex flex-col gap-2 border-t border-gray-100 pt-4 text-base text-gray-500">
+              <li><span className="font-semibold text-gray-900">1.</span> 위 명령어를 프로젝트 루트에서 한 번 실행 — CLI 설치 + 이 프로젝트에 연결</li>
+              <li><span className="font-semibold text-gray-900">2.</span> <code className="rounded bg-gray-100 px-1 py-0.5">claude-lens sync</code> 실행 — Claude Code 대화 기록과 git 커밋 이력 업로드</li>
+              <li><span className="font-semibold text-gray-900">3.</span> 아래에서 <span className="font-semibold text-gray-700">분석 실행</span> — 근거가 붙은 리포트 확인</li>
+            </ol>
           </div>
 
           <EvaluationPanel projectId={project.id} onSectionsReady={setEvalSections} />
